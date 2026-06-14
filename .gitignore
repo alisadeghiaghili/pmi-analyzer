@@ -1,0 +1,31 @@
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.venv/
+venv/
+.env
+*.env
+.DS_Store
+.idea/
+.vscode/
+*.iml
+
+# Test & coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Output
+output/
+data/reports/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb

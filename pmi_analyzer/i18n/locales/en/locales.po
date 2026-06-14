@@ -1,0 +1,222 @@
+# English translations for pmi_analyzer
+msgid ""
+msgstr ""
+"Project-Id-Version: 1.0.0\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# CLI
+msgid "Shamkh Analyzer - Automatic analysis of Shamkh (PMI) and Iranian economic indicators"
+msgstr "Shamkh Analyzer - Automatic analysis of Shamkh (PMI) and Iranian economic indicators"
+
+msgid "download latest report"
+msgstr "Download latest report"
+
+msgid "path to PDF file"
+msgstr "Path to PDF file"
+
+msgid "output directory"
+msgstr "Output directory"
+
+msgid "Plotly chart"
+msgstr "Plotly chart"
+
+msgid "Analyze Shamkh data"
+msgstr "Analyze Shamkh data"
+
+msgid "Either --download or --pdf required"
+msgstr "Either --download or --pdf required"
+
+msgid "Output CSV: {path}"
+msgstr "Output CSV: {path}"
+
+msgid "Chart saved: {path}"
+msgstr "Chart saved: {path}"
+
+# Exceptions
+msgid "Download failed: {error}"
+msgstr "Download failed: {error}"
+
+msgid "Failed to parse PDF: {error}"
+msgstr "Failed to parse PDF: {error}"
+
+msgid "Data validation failed: {error}"
+msgstr "Data validation failed: {error}"
+
+msgid "Plotting failed: {error}"
+msgstr "Plotting failed: {error}"
+
+msgid "Configuration is invalid: {error}"
+msgstr "Configuration is invalid: {error}"
+
+# Logging
+msgid "Downloading from {url}"
+msgstr "Downloading from {url}"
+
+msgid "Downloaded to {path}"
+msgstr "Downloaded to {path}"
+
+msgid "Parsing PDF: {path}"
+msgstr "Parsing PDF: {path}"
+
+msgid "Parsed {count} metrics"
+msgstr "Parsed {count} metrics"
+
+msgid "Calculating metrics for {count} records"
+msgstr "Calculating metrics for {count} records"
+
+msgid "Calculated {count} rows"
+msgstr "Calculated {count} rows"
+
+# Sub-indicators
+msgid "Production"
+msgstr "Production"
+
+msgid "New Orders"
+msgstr "New Orders"
+
+msgid "Sales"
+msgstr "Sales"
+
+msgid "Raw Materials Inventory"
+msgstr "Raw Materials Inventory"
+
+msgid "Final Goods Inventory"
+msgstr "Final Goods Inventory"
+
+msgid "Input Price"
+msgstr "Input Price"
+
+msgid "Production Expectations"
+msgstr "Production Expectations"
+
+msgid "Production Expectations (Next Month)"
+msgstr "Production Expectations (Next Month)"
+
+msgid "Employment"
+msgstr "Employment"
+
+msgid "Exports"
+msgstr "Exports"
+
+msgid "Delivery Speed"
+msgstr "Delivery Speed"
+
+msgid "Business Activity"
+msgstr "Business Activity"
+
+# Composite indicators
+msgid "Demand Pressure"
+msgstr "Demand Pressure"
+
+msgid "Production Capacity"
+msgstr "Production Capacity"
+
+msgid "Labor Market Stress"
+msgstr "Labor Market Stress"
+
+msgid "Recession Severity"
+msgstr "Recession Severity"
+
+msgid "Forward Confidence"
+msgstr "Forward Confidence"
+
+msgid "Supply Chain Stress"
+msgstr "Supply Chain Stress"
+
+msgid "Shamkh Total"
+msgstr "Shamkh Total"
+
+msgid "Full Shamkh Sub-Indicators"
+msgstr "Full Shamkh Sub-Indicators"
+
+msgid "Composite Indicators"
+msgstr "Composite Indicators"
+
+msgid "Employment & Exports"
+msgstr "Employment & Exports"
+
+msgid "Expectations Gap"
+msgstr "Expectations Gap"
+
+msgid "Inventory Comparison"
+msgstr "Inventory Comparison: Raw Materials vs Final Goods"
+
+# Plotting
+msgid "Month"
+msgstr "Month"
+
+msgid "PMI"
+msgstr "PMI"
+
+msgid "Trend"
+msgstr "Trend"
+
+# Trends
+msgid "رونق"
+msgstr "Expansion"
+
+msgid "رکود"
+msgstr "Recession"
+
+msgid "خنثی"
+msgstr "Neutral"
+
+msgid "تقاضای قوی"
+msgstr "Strong Demand"
+
+msgid "تقاضای ضعیف"
+msgstr "Weak Demand"
+
+msgid "تقاضای متوسط"
+msgstr "Moderate Demand"
+
+msgid "استرس شدید"
+msgstr "High Stress"
+
+msgid "استرس متوسط"
+msgstr "Moderate Stress"
+
+msgid "استرس کم"
+msgstr "Low Stress"
+
+msgid "تورم قیمت"
+msgstr "Price Inflation"
+
+msgid "کاهش قیمت"
+msgstr "Price Decrease"
+
+msgid "ثبات قیمت"
+msgstr "Price Stable"
+
+msgid "رکود عمیق و فراگیر"
+msgstr "Deep and Broad Recession"
+
+msgid "رکود متوسط"
+msgstr "Moderate Recession"
+
+msgid "رکود خفیف"
+msgstr "Mild Recession"
+
+msgid "رونق یا خنثی"
+msgstr "Expansion or Neutral"
+
+msgid "افزایش انتظار"
+msgstr "Expectations Increasing"
+
+msgid "کاهش انتظار"
+msgstr "Expectations Decreasing"
+
+msgid "ثبات"
+msgstr "Stable"
+
+msgid "احتمال افزایش تولید"
+msgstr "Likely Production Increase"
+
+msgid "احتمال کاهش تولید"
+msgstr "Likely Production Decrease"
+
+msgid "احتمال ثبات تولید"
+msgstr "Likely Production Stable"

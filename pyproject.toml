@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel", "babel>=2.12.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pmi-analyzer"
+version = "1.0.0"
+description = "Shamkh (PMI) Analyzer - Automatic analysis of Shamkh and Iranian economic indicators"
+readme = "README.md"
+requires-python = ">=3.9"
+
+dependencies = [
+    "pandas>=2.0.0",
+    "plotly>=5.15.0",
+    "requests>=2.28.0",
+    "pdfplumber>=0.7.0",
+    "python-dotenv>=1.0.0",
+    "click>=8.0.0",
+    "pydantic>=2.0.0",
+    "babel>=2.12.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "ruff>=0.0.290",
+    "mypy>=1.0.0",
+]
+
+[project.scripts]
+pmi-analyzer = "pmi_analyzer.cli:cli"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["pmi_analyzer*"]
+
+[tool.black]
+line-length = 100
+target-version = ["py39"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

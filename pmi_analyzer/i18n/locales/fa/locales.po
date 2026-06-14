@@ -1,0 +1,222 @@
+# Persian translations for pmi_analyzer
+msgid ""
+msgstr ""
+"Project-Id-Version: 1.0.0\n"
+"Language: fa\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# CLI
+msgid "Shamkh Analyzer - Automatic analysis of Shamkh (PMI) and Iranian economic indicators"
+msgstr "شامخ آنالایزر - تحلیل خودکار شامخ (PMI) و سنجه‌های اقتصادی ایران"
+
+msgid "download latest report"
+msgstr "دانلود آخرین گزارش"
+
+msgid "path to PDF file"
+msgstr "مسیر فایل PDF"
+
+msgid "output directory"
+msgstr "مسیر خروجی"
+
+msgid "Plotly chart"
+msgstr "نمودار Plotly"
+
+msgid "Analyze Shamkh data"
+msgstr "تحلیل داده‌های شامخ"
+
+msgid "Either --download or --pdf required"
+msgstr "یا --download یا --pdf الزامی است"
+
+msgid "Output CSV: {path}"
+msgstr "خروجی CSV: {path}"
+
+msgid "Chart saved: {path}"
+msgstr "نمودار ذخیره شد: {path}"
+
+# Exceptions
+msgid "Download failed: {error}"
+msgstr "دانلود ناموفق: {error}"
+
+msgid "Failed to parse PDF: {error}"
+msgstr "عدم توانایی در پردازش PDF: {error}"
+
+msgid "Data validation failed: {error}"
+msgstr "اعتبارسنجی داده ناموفق: {error}"
+
+msgid "Plotting failed: {error}"
+msgstr "نمودارگیری ناموفق: {error}"
+
+msgid "Configuration is invalid: {error}"
+msgstr "تنظیمات نامعتبر است: {error}"
+
+# Logging
+msgid "Downloading from {url}"
+msgstr "دانلود از {url}"
+
+msgid "Downloaded to {path}"
+msgstr "دانلود شد به {path}"
+
+msgid "Parsing PDF: {path}"
+msgstr "پردازش PDF: {path}"
+
+msgid "Parsed {count} metrics"
+msgstr "{count} سنجه پردازش شد"
+
+msgid "Calculating metrics for {count} records"
+msgstr "محاسبه سنجه‌ها برای {count} رکورد"
+
+msgid "Calculated {count} rows"
+msgstr "{count} ردیف محاسبه شد"
+
+# Sub-indicators
+msgid "Production"
+msgstr "تولید"
+
+msgid "New Orders"
+msgstr "سفارشات جدید"
+
+msgid "Sales"
+msgstr "سنجه فروش محصولات"
+
+msgid "Raw Materials Inventory"
+msgstr "موجودی مواد اولیه"
+
+msgid "Final Goods Inventory"
+msgstr "موجودی محصول نهایی در انبار"
+
+msgid "Input Price"
+msgstr "قیمت خرید مواد اولیه"
+
+msgid "Production Expectations"
+msgstr "انتظارات تولید برای ماه آینده"
+
+msgid "Production Expectations (Next Month)"
+msgstr "انتظارات تولید (ماه آینده)"
+
+msgid "Employment"
+msgstr "اشتغال"
+
+msgid "Exports"
+msgstr "صادرات"
+
+msgid "Delivery Speed"
+msgstr "سرعت تحویل سفارشات"
+
+msgid "Business Activity"
+msgstr "فعالیت کسب‌وکار"
+
+# Composite indicators
+msgid "Demand Pressure"
+msgstr "فشار تقاضا"
+
+msgid "Production Capacity"
+msgstr "توان تولید"
+
+msgid "Labor Market Stress"
+msgstr "استرس بازار کار"
+
+msgid "Recession Severity"
+msgstr "شدت رکود"
+
+msgid "Forward Confidence"
+msgstr "اعتماد پیش‌نگر"
+
+msgid "Supply Chain Stress"
+msgstr "استرس زنجیره تأمین"
+
+msgid "Shamkh Total"
+msgstr "شامخ کل"
+
+msgid "Full Shamkh Sub-Indicators"
+msgstr "همه زیرشاخص‌های شامخ"
+
+msgid "Composite Indicators"
+msgstr "شاخص‌های ترکیبی"
+
+msgid "Employment & Exports"
+msgstr "اشتغال و صادرات"
+
+msgid "Expectations Gap"
+msgstr "شکاف انتظارات"
+
+msgid "Inventory Comparison"
+msgstr "مقایسه موجودی: مواد اولیه vs محصول نهایی"
+
+# Plotting
+msgid "Month"
+msgstr "ماه"
+
+msgid "PMI"
+msgstr "PMI"
+
+msgid "Trend"
+msgstr "روند"
+
+# Trends
+msgid "رونق"
+msgstr "رونق"
+
+msgid "رکود"
+msgstr "رکود"
+
+msgid "خنثی"
+msgstr "خنثی"
+
+msgid "تقاضای قوی"
+msgstr "تقاضای قوی"
+
+msgid "تقاضای ضعیف"
+msgstr "تقاضای ضعیف"
+
+msgid "تقاضای متوسط"
+msgstr "تقاضای متوسط"
+
+msgid "استرس شدید"
+msgstr "استرس شدید"
+
+msgid "استرس متوسط"
+msgstr "استرس متوسط"
+
+msgid "استرس کم"
+msgstr "استرس کم"
+
+msgid "تورم قیمت"
+msgstr "تورم قیمت"
+
+msgid "کاهش قیمت"
+msgstr "کاهش قیمت"
+
+msgid "ثبات قیمت"
+msgstr "ثبات قیمت"
+
+msgid "رکود عمیق و فراگیر"
+msgstr "رکود عمیق و فراگیر"
+
+msgid "رکود متوسط"
+msgstr "رکود متوسط"
+
+msgid "رکود خفیف"
+msgstr "رکود خفیف"
+
+msgid "رونق یا خنثی"
+msgstr "رونق یا خنثی"
+
+msgid "افزایش انتظار"
+msgstr "افزایش انتظار"
+
+msgid "کاهش انتظار"
+msgstr "کاهش انتظار"
+
+msgid "ثبات"
+msgstr "ثبات"
+
+msgid "احتمال افزایش تولید"
+msgstr "احتمال افزایش تولید"
+
+msgid "احتمال کاهش تولید"
+msgstr "احتمال کاهش تولید"
+
+msgid "احتمال ثبات تولید"
+msgstr "احتمال ثبات تولید"
