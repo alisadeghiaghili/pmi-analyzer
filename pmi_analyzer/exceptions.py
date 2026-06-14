@@ -19,6 +19,10 @@ class ParseError(PMIAnalyzerError):
     pass
 
 
+# Alias for backwards-compatibility and test clarity
+PDFParseError = ParseError
+
+
 class ValidationError(PMIAnalyzerError):
     """Raised when data validation fails."""
 
