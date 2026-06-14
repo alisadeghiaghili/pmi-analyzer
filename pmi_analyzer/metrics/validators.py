@@ -45,9 +45,7 @@ class MetricsValidator:
             raise ValidationError("month is required and cannot be empty")
 
         if not metrics.validate():
-            raise ValidationError(
-                f"month={metrics.month}: at least one metric value is required"
-            )
+            raise ValidationError(f"month={metrics.month}: at least one metric value is required")
 
         for field in _NUMERIC_FIELDS:
             val = getattr(metrics, field, None)
