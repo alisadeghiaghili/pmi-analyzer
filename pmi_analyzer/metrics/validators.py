@@ -22,12 +22,22 @@ def validate_metrics(metrics: List[ShamkhMetrics]) -> None:
         if not m.month:
             raise ValidationError(f"Record {i}: month is required")
         if not m.validate():
-            raise ValidationError(f"Record {i} (month={m.month}): at least one metric value is required")
+            raise ValidationError(
+                f"Record {i} (month={m.month}): at least one metric value is required"
+            )
 
         for field in [
-            "production", "new_orders", "sales", "raw_materials_inv",
-            "final_goods_inv", "input_price", "production_expectations",
-            "employment", "exports", "delivery_speed", "business_activity"
+            "production",
+            "new_orders",
+            "sales",
+            "raw_materials_inv",
+            "final_goods_inv",
+            "input_price",
+            "production_expectations",
+            "employment",
+            "exports",
+            "delivery_speed",
+            "business_activity",
         ]:
             val = getattr(m, field, None)
             if val is not None and not (0 <= val <= 100):

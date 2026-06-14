@@ -52,9 +52,12 @@ class BatchParser:
                 )
                 for m in metrics_list:
                     # Attach period_number for sorting
-                    if lnk.period_number and not hasattr(m, '_period_number'):
-                        object.__setattr__(m, '_period_number', lnk.period_number) \
-                            if hasattr(m, '__dataclass_fields__') else None
+                    if lnk.period_number and not hasattr(m, "_period_number"):
+                        (
+                            object.__setattr__(m, "_period_number", lnk.period_number)
+                            if hasattr(m, "__dataclass_fields__")
+                            else None
+                        )
                 all_metrics.extend(metrics_list)
                 logger.debug(f"    OK - month={metrics_list[0].month if metrics_list else '?'}")
             except Exception as e:

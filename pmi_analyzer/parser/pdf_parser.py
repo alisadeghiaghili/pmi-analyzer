@@ -59,9 +59,7 @@ class PDFParser:
 
             detected_month = month or self._detect_month(text) or "unknown"
 
-            return [
-                ShamkhMetrics(month=detected_month, **metrics_dict)
-            ]
+            return [ShamkhMetrics(month=detected_month, **metrics_dict)]
 
         except Exception as e:
             raise ParseError(f"Failed to parse PDF: {e}") from e

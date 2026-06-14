@@ -21,8 +21,9 @@ logger = logging.getLogger(__name__)
 @dataclass
 class UpdateResult:
     """Result of a monthly update run."""
-    status: str            # 'new' | 'already_up_to_date' | 'failed'
-    month: Optional[str]   # month label if new record found
+
+    status: str  # 'new' | 'already_up_to_date' | 'failed'
+    month: Optional[str]  # month label if new record found
     metrics: Optional[ShamkhMetrics] = None
     error: Optional[str] = None
 
@@ -79,14 +80,19 @@ class MonthlyUpdater:
             logger.info("[Updater] Discovering latest report link...")
             latest_link = self._get_latest_link()
             if latest_link is None:
-                return UpdateResult(status="failed", month=None,
-                                    error="Could not discover any report links.")
+                return UpdateResult(
+                    status="failed", month=None, error="Could not discover any report links."
+                )
 
-            logger.info(f"[Updater] Latest link: period={latest_link.period_label} pdf={latest_link.pdf_url}")
+            logger.info(
+                f"[Updater] Latest link: period={latest_link.period_label} pdf={latest_link.pdf_url}"
+            )
 
             # Step 2: check if we already have this month
             existing_months = self._existing_months()
-            if latest_link.period_label and self._month_exists(latest_link.period_label, existing_months):
+            if latest_link.period_label and self._month_exists(
+                latest_link.period_label, existing_months
+            ):
                 logger.info(f"[Updater] Already up to date ({latest_link.period_label}).")
                 return UpdateResult(status="already_up_to_date", month=latest_link.period_label)
 
@@ -96,23 +102,32 @@ class MonthlyUpdater:
                 links = self._scraper.resolve_missing_pdfs([latest_link])
                 latest_link = links[0]
                 if not latest_link.pdf_url:
-                    return UpdateResult(status="failed", month=latest_link.period_label,
-                                        error="Could not resolve PDF URL.")
+                    return UpdateResult(
+                        status="failed",
+                        month=latest_link.period_label,
+                        error="Could not resolve PDF URL.",
+                    )
 
             # Step 3b: download
             logger.info(f"[Updater] Downloading: {latest_link.pdf_url}")
             download_results = self._downloader.download_all([latest_link], skip_existing=False)
             _, pdf_path = download_results[0]
             if not pdf_path or not pdf_path.exists():
-                return UpdateResult(status="failed", month=latest_link.period_label,
-                                    error=f"Download failed: {latest_link.pdf_url}")
+                return UpdateResult(
+                    status="failed",
+                    month=latest_link.period_label,
+                    error=f"Download failed: {latest_link.pdf_url}",
+                )
 
             # Step 3c: parse
             logger.info(f"[Updater] Parsing: {pdf_path.name}")
             metrics = self._parser.parse_single(pdf_path, month=latest_link.period_label)
             if metrics is None:
-                return UpdateResult(status="failed", month=latest_link.period_label,
-                                    error=f"Parse failed: {pdf_path.name}")
+                return UpdateResult(
+                    status="failed",
+                    month=latest_link.period_label,
+                    error=f"Parse failed: {pdf_path.name}",
+                )
 
             # Step 3d: append to CSV
             logger.info(f"[Updater] Appending: month={metrics.month} pmi={metrics.pmi_total}")

@@ -37,17 +37,18 @@ class PlotlyPlotter:
             ("business_activity", _("Business Activity")),
         ]
 
-        available = [(col, title) for col, title in sub_indices if col in df.columns and df[col].notna().any()]
+        available = [
+            (col, title)
+            for col, title in sub_indices
+            if col in df.columns and df[col].notna().any()
+        ]
         n = len(available)
         cols = 3
         rows = (n + cols) // cols
 
         titles = [title for _, title in available] + [_("Shamkh Total")]
         fig = make_subplots(
-            rows=rows, cols=cols,
-            shared_xaxes=True,
-            vertical_spacing=0.08,
-            subplot_titles=titles
+            rows=rows, cols=cols, shared_xaxes=True, vertical_spacing=0.08, subplot_titles=titles
         )
 
         for i, (col, title) in enumerate(available):
@@ -55,26 +56,30 @@ class PlotlyPlotter:
             col_num = (i % cols) + 1
             fig.add_trace(
                 go.Scatter(
-                    x=df["month"], y=df[col],
+                    x=df["month"],
+                    y=df[col],
                     mode="lines+markers",
                     name=title,
                     line=dict(width=2),
                     marker=dict(size=6),
                 ),
-                row=row, col=col_num
+                row=row,
+                col=col_num,
             )
             fig.add_hline(y=50, line=dict(color="red", dash="dash"), row=row, col=col_num)
 
         if "shamkh_total" in df.columns:
             fig.add_trace(
                 go.Scatter(
-                    x=df["month"], y=df["shamkh_total"],
+                    x=df["month"],
+                    y=df["shamkh_total"],
                     mode="lines+markers",
                     name=_("Shamkh Total"),
                     line=dict(color="#ff7f0e", width=3),
                     marker=dict(size=8),
                 ),
-                row=rows, col=cols
+                row=rows,
+                col=cols,
             )
             fig.add_hline(y=50, line=dict(color="red", dash="dash"), row=rows, col=cols)
 
@@ -91,7 +96,9 @@ class PlotlyPlotter:
         fig.write_html(str(filepath))
         return filepath
 
-    def plot_composite_indicators(self, df: pd.DataFrame, output_dir: Optional[Path] = None) -> Path:
+    def plot_composite_indicators(
+        self, df: pd.DataFrame, output_dir: Optional[Path] = None
+    ) -> Path:
         """Plot composite/advanced indicators."""
         output_dir = output_dir or self.config.output_dir
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -110,8 +117,11 @@ class PlotlyPlotter:
             row = (i // 2) + 1
             col_num = (i % 2) + 1
             fig.add_trace(
-                go.Scatter(x=df["month"], y=df[col], mode="lines+markers", name=title, line=dict(width=2)),
-                row=row, col=col_num
+                go.Scatter(
+                    x=df["month"], y=df[col], mode="lines+markers", name=title, line=dict(width=2)
+                ),
+                row=row,
+                col=col_num,
             )
             ref_y = 50 if col in ("demand_pressure", "labor_stress") else 0
             fig.add_hline(y=ref_y, line=dict(color="red", dash="dash"), row=row, col=col_num)
@@ -138,22 +148,33 @@ class PlotlyPlotter:
             ("exports", _("Exports"), "#2ca02c"),
         ]:
             if col in df.columns:
-                fig.add_trace(go.Scatter(
-                    x=df["month"], y=df[col],
-                    mode="lines+markers", name=name,
-                    line=dict(color=color, width=3), marker=dict(size=8)
-                ))
+                fig.add_trace(
+                    go.Scatter(
+                        x=df["month"],
+                        y=df[col],
+                        mode="lines+markers",
+                        name=name,
+                        line=dict(color=color, width=3),
+                        marker=dict(size=8),
+                    )
+                )
         fig.add_hline(y=50, line=dict(color="red", dash="dash"), annotation_text="50")
         fig.update_layout(
-            height=450, title_text=_("Employment & Exports"),
-            title_x=0.5, xaxis_title=_("Month"), yaxis_title="PMI",
-            showlegend=True, template="plotly_white"
+            height=450,
+            title_text=_("Employment & Exports"),
+            title_x=0.5,
+            xaxis_title=_("Month"),
+            yaxis_title="PMI",
+            showlegend=True,
+            template="plotly_white",
         )
         filepath = output_dir / "labor_and_exports.html"
         fig.write_html(str(filepath))
         return filepath
 
-    def plot_production_expectations(self, df: pd.DataFrame, output_dir: Optional[Path] = None) -> Path:
+    def plot_production_expectations(
+        self, df: pd.DataFrame, output_dir: Optional[Path] = None
+    ) -> Path:
         """Plot production expectations vs actual production."""
         output_dir = output_dir or self.config.output_dir
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -164,23 +185,33 @@ class PlotlyPlotter:
             ("production_expectations", _("Production Expectations"), "#2ca02c", "dash"),
         ]:
             if col in df.columns:
-                fig.add_trace(go.Scatter(
-                    x=df["month"], y=df[col],
-                    mode="lines+markers", name=name,
-                    line=dict(color=color, width=3, dash=dash), marker=dict(size=8)
-                ))
+                fig.add_trace(
+                    go.Scatter(
+                        x=df["month"],
+                        y=df[col],
+                        mode="lines+markers",
+                        name=name,
+                        line=dict(color=color, width=3, dash=dash),
+                        marker=dict(size=8),
+                    )
+                )
         fig.add_hline(y=50, line=dict(color="red", dash="dash"))
         fig.update_layout(
             height=500,
             title_text="Production Expectations vs Actual",
-            title_x=0.5, xaxis_title=_("Month"), yaxis_title="PMI",
-            showlegend=True, template="plotly_white"
+            title_x=0.5,
+            xaxis_title=_("Month"),
+            yaxis_title="PMI",
+            showlegend=True,
+            template="plotly_white",
         )
         filepath = output_dir / "production_expectations.html"
         fig.write_html(str(filepath))
         return filepath
 
-    def plot_inventory_comparison(self, df: pd.DataFrame, output_dir: Optional[Path] = None) -> Path:
+    def plot_inventory_comparison(
+        self, df: pd.DataFrame, output_dir: Optional[Path] = None
+    ) -> Path:
         """Plot Raw Materials vs Final Goods Inventory comparison."""
         output_dir = output_dir or self.config.output_dir
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -191,16 +222,25 @@ class PlotlyPlotter:
             ("final_goods_inv", _("Final Goods Inventory"), "#2ca02c"),
         ]:
             if col in df.columns:
-                fig.add_trace(go.Scatter(
-                    x=df["month"], y=df[col],
-                    mode="lines+markers", name=name,
-                    line=dict(color=color, width=3), marker=dict(size=8)
-                ))
+                fig.add_trace(
+                    go.Scatter(
+                        x=df["month"],
+                        y=df[col],
+                        mode="lines+markers",
+                        name=name,
+                        line=dict(color=color, width=3),
+                        marker=dict(size=8),
+                    )
+                )
         fig.add_hline(y=50, line=dict(color="red", dash="dash"))
         fig.update_layout(
-            height=450, title_text=_("Inventory Comparison"),
-            title_x=0.5, xaxis_title=_("Month"), yaxis_title="PMI",
-            showlegend=True, template="plotly_white"
+            height=450,
+            title_text=_("Inventory Comparison"),
+            title_x=0.5,
+            xaxis_title=_("Month"),
+            yaxis_title="PMI",
+            showlegend=True,
+            template="plotly_white",
         )
         filepath = output_dir / "inventory_comparison.html"
         fig.write_html(str(filepath))

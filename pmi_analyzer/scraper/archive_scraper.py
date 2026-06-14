@@ -19,10 +19,11 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ReportLink:
     """A discovered Shamkh report with its PDF URL and metadata."""
+
     title: str
     page_url: str
     pdf_url: Optional[str]
-    period_label: Optional[str]   # e.g. 'دی ۱۴۰۴'
+    period_label: Optional[str]  # e.g. 'دی ۱۴۰۴'
     period_number: Optional[int]  # e.g. 88
 
     def __repr__(self) -> str:
@@ -62,13 +63,15 @@ class ArchiveScraper:
         self.delay = delay
         self.timeout = timeout
         self.session = requests.Session()
-        self.session.headers.update({
-            "User-Agent": (
-                "Mozilla/5.0 (compatible; pmi-analyzer/1.0; "
-                "+https://github.com/alisadeghiaghili/pmi-analyzer)"
-            ),
-            "Accept-Language": "fa,en;q=0.9",
-        })
+        self.session.headers.update(
+            {
+                "User-Agent": (
+                    "Mozilla/5.0 (compatible; pmi-analyzer/1.0; "
+                    "+https://github.com/alisadeghiaghili/pmi-analyzer)"
+                ),
+                "Accept-Language": "fa,en;q=0.9",
+            }
+        )
 
     # ------------------------------------------------------------------ #
     #  Public API
@@ -162,7 +165,11 @@ class ArchiveScraper:
         links: List[ReportLink] = []
         page_num = 1
         while True:
-            url = self.ICCIMA_SEARCH_URL if page_num == 1 else f"{self.ICCIMA_SEARCH_URL}&paged={page_num}"
+            url = (
+                self.ICCIMA_SEARCH_URL
+                if page_num == 1
+                else f"{self.ICCIMA_SEARCH_URL}&paged={page_num}"
+            )
             logger.debug(f"  Fetching iccima page {page_num}: {url}")
             soup = self._get_soup(url)
             if soup is None:
@@ -198,13 +205,15 @@ class ArchiveScraper:
             page_url = urljoin(base_url, href)
             pdf_url = self._find_pdf_in_element(item, base_url)
             period_label, period_number = self._extract_period(title)
-            links.append(ReportLink(
-                title=title,
-                page_url=page_url,
-                pdf_url=pdf_url,
-                period_label=period_label,
-                period_number=period_number,
-            ))
+            links.append(
+                ReportLink(
+                    title=title,
+                    page_url=page_url,
+                    pdf_url=pdf_url,
+                    period_label=period_label,
+                    period_number=period_number,
+                )
+            )
         return links
 
     def _find_pdf_in_element(self, element, base_url: str) -> Optional[str]:

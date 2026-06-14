@@ -59,17 +59,33 @@ class Deduplicator:
     def _completeness_score(self, m: ShamkhMetrics) -> int:
         """Count non-None fields (higher = more complete)."""
         fields = [
-            "production", "new_orders", "sales", "raw_materials_inv",
-            "final_goods_inv", "input_price", "production_expectations",
-            "employment", "exports", "delivery_speed", "business_activity",
+            "production",
+            "new_orders",
+            "sales",
+            "raw_materials_inv",
+            "final_goods_inv",
+            "input_price",
+            "production_expectations",
+            "employment",
+            "exports",
+            "delivery_speed",
+            "business_activity",
         ]
         return sum(1 for f in fields if getattr(m, f, None) is not None)
 
     def _missing_fields(self, m: ShamkhMetrics) -> List[str]:
         """Return list of missing field names."""
         fields = [
-            "production", "new_orders", "sales", "raw_materials_inv",
-            "final_goods_inv", "input_price", "production_expectations",
-            "employment", "exports", "delivery_speed", "business_activity",
+            "production",
+            "new_orders",
+            "sales",
+            "raw_materials_inv",
+            "final_goods_inv",
+            "input_price",
+            "production_expectations",
+            "employment",
+            "exports",
+            "delivery_speed",
+            "business_activity",
         ]
         return [f for f in fields if getattr(m, f, None) is None]

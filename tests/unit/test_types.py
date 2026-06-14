@@ -7,10 +7,10 @@ Write them first; implement types.py to make them pass.
 import pytest
 from pmi_analyzer.types import ShamkhMetrics, PlotType, DataSource, PlotConfig, DownloadConfig
 
-
 # ------------------------------------------------------------------ #
 #  ShamkhMetrics construction
 # ------------------------------------------------------------------ #
+
 
 class TestShamkhMetricsConstruction:
     def test_requires_month(self):
@@ -20,9 +20,17 @@ class TestShamkhMetricsConstruction:
     def test_all_optional_fields_default_to_none(self):
         m = ShamkhMetrics(month="1402-01")
         for field in [
-            "production", "new_orders", "sales", "raw_materials_inv",
-            "final_goods_inv", "input_price", "production_expectations",
-            "employment", "exports", "delivery_speed", "business_activity",
+            "production",
+            "new_orders",
+            "sales",
+            "raw_materials_inv",
+            "final_goods_inv",
+            "input_price",
+            "production_expectations",
+            "employment",
+            "exports",
+            "delivery_speed",
+            "business_activity",
         ]:
             assert getattr(m, field) is None, f"{field} should default to None"
 
@@ -33,8 +41,11 @@ class TestShamkhMetricsConstruction:
     def test_full_construction(self):
         m = ShamkhMetrics(
             month="1402-01",
-            production=52.0, new_orders=48.0, sales=50.0,
-            input_price=75.0, employment=49.0,
+            production=52.0,
+            new_orders=48.0,
+            sales=50.0,
+            input_price=75.0,
+            employment=49.0,
         )
         assert m.production == 52.0
         assert m.employment == 49.0
@@ -43,6 +54,7 @@ class TestShamkhMetricsConstruction:
 # ------------------------------------------------------------------ #
 #  validate()
 # ------------------------------------------------------------------ #
+
 
 class TestShamkhMetricsValidate:
     def test_empty_metrics_is_invalid(self):
@@ -54,10 +66,17 @@ class TestShamkhMetricsValidate:
     def test_full_metrics_is_valid(self):
         m = ShamkhMetrics(
             month="1402-01",
-            production=52.0, new_orders=48.0, sales=50.0,
-            raw_materials_inv=47.0, final_goods_inv=45.0, input_price=75.0,
-            production_expectations=55.0, employment=49.0,
-            exports=44.0, delivery_speed=46.0, business_activity=51.0,
+            production=52.0,
+            new_orders=48.0,
+            sales=50.0,
+            raw_materials_inv=47.0,
+            final_goods_inv=45.0,
+            input_price=75.0,
+            production_expectations=55.0,
+            employment=49.0,
+            exports=44.0,
+            delivery_speed=46.0,
+            business_activity=51.0,
         )
         assert m.validate() is True
 
@@ -66,6 +85,7 @@ class TestShamkhMetricsValidate:
 #  is_complete()
 # ------------------------------------------------------------------ #
 
+
 class TestShamkhMetricsIsComplete:
     def test_empty_is_not_complete(self):
         assert ShamkhMetrics(month="1402-01").is_complete() is False
@@ -73,10 +93,16 @@ class TestShamkhMetricsIsComplete:
     def test_missing_one_field_is_not_complete(self):
         m = ShamkhMetrics(
             month="1402-01",
-            production=52.0, new_orders=48.0, sales=50.0,
-            raw_materials_inv=47.0, final_goods_inv=45.0, input_price=75.0,
-            production_expectations=55.0, employment=49.0,
-            exports=44.0, delivery_speed=46.0,
+            production=52.0,
+            new_orders=48.0,
+            sales=50.0,
+            raw_materials_inv=47.0,
+            final_goods_inv=45.0,
+            input_price=75.0,
+            production_expectations=55.0,
+            employment=49.0,
+            exports=44.0,
+            delivery_speed=46.0,
             # business_activity intentionally missing
         )
         assert m.is_complete() is False
@@ -84,10 +110,17 @@ class TestShamkhMetricsIsComplete:
     def test_all_fields_present_is_complete(self):
         m = ShamkhMetrics(
             month="1402-01",
-            production=52.0, new_orders=48.0, sales=50.0,
-            raw_materials_inv=47.0, final_goods_inv=45.0, input_price=75.0,
-            production_expectations=55.0, employment=49.0,
-            exports=44.0, delivery_speed=46.0, business_activity=51.0,
+            production=52.0,
+            new_orders=48.0,
+            sales=50.0,
+            raw_materials_inv=47.0,
+            final_goods_inv=45.0,
+            input_price=75.0,
+            production_expectations=55.0,
+            employment=49.0,
+            exports=44.0,
+            delivery_speed=46.0,
+            business_activity=51.0,
         )
         assert m.is_complete() is True
 
@@ -95,6 +128,7 @@ class TestShamkhMetricsIsComplete:
 # ------------------------------------------------------------------ #
 #  Enums
 # ------------------------------------------------------------------ #
+
 
 class TestEnums:
     def test_plot_type_values(self):
@@ -111,6 +145,7 @@ class TestEnums:
 # ------------------------------------------------------------------ #
 #  Config dataclasses
 # ------------------------------------------------------------------ #
+
 
 class TestConfigs:
     def test_plot_config_defaults(self):

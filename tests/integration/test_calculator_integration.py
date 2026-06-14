@@ -68,10 +68,17 @@ class TestEdgeCases:
     def test_single_month_rolling_and_pct_both_nan(self):
         m = ShamkhMetrics(
             month="1402-01",
-            production=48.0, new_orders=46.0, sales=47.0,
-            raw_materials_inv=44.0, final_goods_inv=43.0, input_price=72.0,
-            production_expectations=50.0, employment=47.0,
-            exports=42.0, delivery_speed=44.0, business_activity=46.0,
+            production=48.0,
+            new_orders=46.0,
+            sales=47.0,
+            raw_materials_inv=44.0,
+            final_goods_inv=43.0,
+            input_price=72.0,
+            production_expectations=50.0,
+            employment=47.0,
+            exports=42.0,
+            delivery_speed=44.0,
+            business_activity=46.0,
         )
         df = MetricsCalculator().calculate([m])
         assert pd.isna(df.loc[0, "production_rolling_mean_3"])

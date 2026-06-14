@@ -1,8 +1,5 @@
 """Unit tests for BatchDownloader."""
 
-from pathlib import Path
-from unittest.mock import MagicMock, patch
-
 from pmi_analyzer.scraper.archive_scraper import ReportLink
 from pmi_analyzer.scraper.batch_downloader import BatchDownloader
 
@@ -48,8 +45,9 @@ class TestDownloadAll:
 
     def test_skips_links_without_pdf_url(self, tmp_path):
         d = BatchDownloader(pdf_dir=tmp_path, delay=0)
-        lnk = ReportLink(title="t", page_url="https://x.com", pdf_url=None,
-                         period_label=None, period_number=None)
+        lnk = ReportLink(
+            title="t", page_url="https://x.com", pdf_url=None, period_label=None, period_number=None
+        )
         results = d.download_all([lnk])
         assert results == []
 

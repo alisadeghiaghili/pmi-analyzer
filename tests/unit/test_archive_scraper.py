@@ -1,7 +1,7 @@
 """Unit tests for ArchiveScraper (no network calls)."""
 
 from bs4 import BeautifulSoup
-from pmi_analyzer.scraper.archive_scraper import ArchiveScraper, ReportLink
+from pmi_analyzer.scraper.archive_scraper import ArchiveScraper
 
 
 def make_soup(html: str) -> BeautifulSoup:
@@ -51,7 +51,7 @@ class TestFindPdfInElement:
 
     def test_pdf_nested_in_div(self):
         soup = make_soup(
-            '<div><p>توضیح</p>'
+            "<div><p>توضیح</p>"
             '<a href="https://iccima.ir/wp-content/shamkh1404.pdf">دانلود</a></div>'
         )
         result = self.scraper._find_pdf_in_element(soup.find("div"), "https://iccima.ir")
@@ -79,10 +79,10 @@ class TestDiscoverAll:
 
     def test_discovers_shamkh_links(self):
         html = (
-            '<article>'
+            "<article>"
             '<a href="/news/123/%D8%B4%D8%A7%D9%85%D8%AE-%D8%AF%DB%8C-1404">شامخ دی 1404 دوره 88</a>'
             '<a href="/files/shamkh-di1404.pdf">دانلود</a>'
-            '</article>'
+            "</article>"
         )
         links = self._mock_scraper(html).discover_all()
         assert len(links) >= 1

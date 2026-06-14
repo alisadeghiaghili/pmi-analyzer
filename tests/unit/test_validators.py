@@ -8,10 +8,17 @@ from pmi_analyzer.metrics.validators import MetricsValidator
 def full(**overrides):
     base = dict(
         month="1402-01",
-        production=52.0, new_orders=48.0, sales=50.0,
-        raw_materials_inv=47.0, final_goods_inv=45.0, input_price=75.0,
-        production_expectations=55.0, employment=49.0,
-        exports=44.0, delivery_speed=46.0, business_activity=51.0,
+        production=52.0,
+        new_orders=48.0,
+        sales=50.0,
+        raw_materials_inv=47.0,
+        final_goods_inv=45.0,
+        input_price=75.0,
+        production_expectations=55.0,
+        employment=49.0,
+        exports=44.0,
+        delivery_speed=46.0,
+        business_activity=51.0,
     )
     base.update(overrides)
     return ShamkhMetrics(**base)

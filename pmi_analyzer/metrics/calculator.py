@@ -37,20 +37,22 @@ class MetricsCalculator:
 
         rows = []
         for m in metrics:
-            rows.append({
-                "month": m.month,
-                "production": m.production,
-                "new_orders": m.new_orders,
-                "sales": m.sales,
-                "raw_materials_inv": m.raw_materials_inv,
-                "final_goods_inv": m.final_goods_inv,
-                "input_price": m.input_price,
-                "production_expectations": m.production_expectations,
-                "employment": m.employment,
-                "exports": m.exports,
-                "delivery_speed": m.delivery_speed,
-                "business_activity": m.business_activity,
-            })
+            rows.append(
+                {
+                    "month": m.month,
+                    "production": m.production,
+                    "new_orders": m.new_orders,
+                    "sales": m.sales,
+                    "raw_materials_inv": m.raw_materials_inv,
+                    "final_goods_inv": m.final_goods_inv,
+                    "input_price": m.input_price,
+                    "production_expectations": m.production_expectations,
+                    "employment": m.employment,
+                    "exports": m.exports,
+                    "delivery_speed": m.delivery_speed,
+                    "business_activity": m.business_activity,
+                }
+            )
 
         df = pd.DataFrame(rows).sort_values("month").reset_index(drop=True)
 
@@ -71,7 +73,9 @@ class MetricsCalculator:
         """Calculate metrics for a single indicator."""
         df[f"{col}_change_pct"] = df[col].pct_change() * 100
         df[f"{col}_trend"] = df[col].apply(
-            lambda x: "رونق" if pd.notna(x) and x > 50 else ("رکود" if pd.notna(x) and x < 50 else "خنثی")
+            lambda x: (
+                "رونق" if pd.notna(x) and x > 50 else ("رکود" if pd.notna(x) and x < 50 else "خنثی")
+            )
         )
         df[f"{col}_rolling_mean_3"] = df[col].rolling(3).mean()
         return df
@@ -85,12 +89,18 @@ class MetricsCalculator:
 
         df["expectations_gap"] = df["production_expectations"] - df["production"]
         df["expectations_gap_trend"] = df["expectations_gap"].apply(
-            lambda x: "افزایش انتظار" if pd.notna(x) and x > 0 else ("کاهش انتظار" if pd.notna(x) and x < 0 else "ثبات")
+            lambda x: (
+                "افزایش انتظار"
+                if pd.notna(x) and x > 0
+                else ("کاهش انتظار" if pd.notna(x) and x < 0 else "ثبات")
+            )
         )
         df["expectations_gap_rolling_mean"] = df["expectations_gap"].rolling(3).mean()
         df["predicted_production_trend"] = df["expectations_gap"].apply(
-            lambda x: "احتمال افزایش تولید" if pd.notna(x) and x > 2 else (
-                "احتمال کاهش تولید" if pd.notna(x) and x < -2 else "احتمال ثبات تولید"
+            lambda x: (
+                "احتمال افزایش تولید"
+                if pd.notna(x) and x > 2
+                else ("احتمال کاهش تولید" if pd.notna(x) and x < -2 else "احتمال ثبات تولید")
             )
         )
         return df
@@ -102,8 +112,10 @@ class MetricsCalculator:
         if all(c in df.columns and df[c].notna().any() for c in demand_cols):
             df["demand_pressure"] = df[demand_cols].mean(axis=1)
             df["demand_pressure_trend"] = df["demand_pressure"].apply(
-                lambda x: "تقاضای قوی" if pd.notna(x) and x > 50 else (
-                    "تقاضای ضعیف" if pd.notna(x) and x < 40 else "تقاضای متوسط"
+                lambda x: (
+                    "تقاضای قوی"
+                    if pd.notna(x) and x > 50
+                    else ("تقاضای ضعیف" if pd.notna(x) and x < 40 else "تقاضای متوسط")
                 )
             )
 
@@ -116,8 +128,10 @@ class MetricsCalculator:
         if "employment" in df.columns and df["employment"].notna().any():
             df["labor_stress"] = 100 - df["employment"]
             df["labor_stress_trend"] = df["labor_stress"].apply(
-                lambda x: "استرس شدید" if pd.notna(x) and x > 60 else (
-                    "استرس متوسط" if pd.notna(x) and x > 50 else "استرس کم"
+                lambda x: (
+                    "استرس شدید"
+                    if pd.notna(x) and x > 60
+                    else ("استرس متوسط" if pd.notna(x) and x > 50 else "استرس کم")
                 )
             )
 
@@ -125,8 +139,10 @@ class MetricsCalculator:
         if "input_price" in df.columns and df["input_price"].notna().any():
             df["price_inflation_signal"] = df["input_price"] - 50
             df["price_trend"] = df["price_inflation_signal"].apply(
-                lambda x: "تورم قیمت" if pd.notna(x) and x > 10 else (
-                    "کاهش قیمت" if pd.notna(x) and x < -10 else "ثبات قیمت"
+                lambda x: (
+                    "تورم قیمت"
+                    if pd.notna(x) and x > 10
+                    else ("کاهش قیمت" if pd.notna(x) and x < -10 else "ثبات قیمت")
                 )
             )
 
@@ -134,17 +150,19 @@ class MetricsCalculator:
         if "shamkh_total" in df.columns and df["shamkh_total"].notna().any():
             df["recession_severity"] = 50 - df["shamkh_total"]
             df["recession_classification"] = df["recession_severity"].apply(
-                lambda x: "رکود عمیق و فراگیر" if pd.notna(x) and x > 15 else (
-                    "رکود متوسط" if pd.notna(x) and x > 10 else (
-                        "رکود خفیف" if pd.notna(x) and x > 5 else "رونق یا خنثی"
+                lambda x: (
+                    "رکود عمیق و فراگیر"
+                    if pd.notna(x) and x > 15
+                    else (
+                        "رکود متوسط"
+                        if pd.notna(x) and x > 10
+                        else ("رکود خفیف" if pd.notna(x) and x > 5 else "رونق یا خنثی")
                     )
                 )
             )
 
         # 6. Supply Chain Stress
         if "raw_materials_inv" in df.columns and "new_orders" in df.columns:
-            df["supply_chain_stress"] = (
-                (df["raw_materials_inv"] < 45) & (df["new_orders"] < 40)
-            )
+            df["supply_chain_stress"] = (df["raw_materials_inv"] < 45) & (df["new_orders"] < 40)
 
         return df

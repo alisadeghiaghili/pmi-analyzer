@@ -29,12 +29,14 @@ class BatchDownloader:
         self.delay = delay
         self.timeout = timeout
         self.session = requests.Session()
-        self.session.headers.update({
-            "User-Agent": (
-                "Mozilla/5.0 (compatible; pmi-analyzer/1.0; "
-                "+https://github.com/alisadeghiaghili/pmi-analyzer)"
-            )
-        })
+        self.session.headers.update(
+            {
+                "User-Agent": (
+                    "Mozilla/5.0 (compatible; pmi-analyzer/1.0; "
+                    "+https://github.com/alisadeghiaghili/pmi-analyzer)"
+                )
+            }
+        )
 
     def download_all(
         self,

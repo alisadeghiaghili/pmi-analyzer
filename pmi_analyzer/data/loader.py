@@ -54,10 +54,19 @@ def append_record(record: ShamkhMetrics, path: Path = DEFAULT_CSV) -> None:
         return  # already exists, skip
 
     fieldnames = [
-        "month", "production", "new_orders", "sales",
-        "raw_materials_inv", "final_goods_inv", "input_price",
-        "production_expectations", "employment", "exports",
-        "delivery_speed", "business_activity", "pmi_total",
+        "month",
+        "production",
+        "new_orders",
+        "sales",
+        "raw_materials_inv",
+        "final_goods_inv",
+        "input_price",
+        "production_expectations",
+        "employment",
+        "exports",
+        "delivery_speed",
+        "business_activity",
+        "pmi_total",
     ]
 
     write_header = not path.exists()
@@ -70,6 +79,7 @@ def append_record(record: ShamkhMetrics, path: Path = DEFAULT_CSV) -> None:
 
 def _row_to_metrics(row: dict) -> ShamkhMetrics:
     """Convert a CSV row dict to ShamkhMetrics."""
+
     def _float(val: str) -> Optional[float]:
         val = val.strip()
         if not val:

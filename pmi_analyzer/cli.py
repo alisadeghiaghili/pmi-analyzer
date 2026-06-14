@@ -15,7 +15,9 @@ def cli(locale: str):
 @cli.command()
 @click.option("--download", is_flag=True, help="Download latest report from iccima.ir")
 @click.option("--pdf", type=click.Path(exists=True), help="Path to local PDF file")
-@click.option("--output", type=click.Path(), default="output", show_default=True, help="Output directory")
+@click.option(
+    "--output", type=click.Path(), default="output", show_default=True, help="Output directory"
+)
 @click.option("--plot", is_flag=True, help="Generate full sub-indicators chart")
 @click.option("--composite", is_flag=True, help="Generate composite indicators chart")
 @click.option("--inventory", is_flag=True, help="Generate inventory comparison chart")

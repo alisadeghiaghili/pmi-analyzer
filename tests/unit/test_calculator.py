@@ -8,17 +8,24 @@ import pandas as pd
 from pmi_analyzer.types import ShamkhMetrics
 from pmi_analyzer.metrics.calculator import MetricsCalculator
 
-
 # ------------------------------------------------------------------ #
 #  Helpers
 # ------------------------------------------------------------------ #
 
+
 def full(month="1402-01", **overrides):
     base = dict(
-        production=52.0, new_orders=48.0, sales=50.0,
-        raw_materials_inv=47.0, final_goods_inv=45.0, input_price=75.0,
-        production_expectations=55.0, employment=49.0,
-        exports=44.0, delivery_speed=46.0, business_activity=51.0,
+        production=52.0,
+        new_orders=48.0,
+        sales=50.0,
+        raw_materials_inv=47.0,
+        final_goods_inv=45.0,
+        input_price=75.0,
+        production_expectations=55.0,
+        employment=49.0,
+        exports=44.0,
+        delivery_speed=46.0,
+        business_activity=51.0,
     )
     base.update(overrides)
     return ShamkhMetrics(month=month, **base)
@@ -41,6 +48,7 @@ def three_months():
 # ------------------------------------------------------------------ #
 #  Basic output
 # ------------------------------------------------------------------ #
+
 
 class TestCalculatorBasic:
     def test_raises_on_empty_input(self, calc):
@@ -69,6 +77,7 @@ class TestCalculatorBasic:
 #  Trend labels
 # ------------------------------------------------------------------ #
 
+
 class TestTrendLabels:
     def test_trend_boom_above_50(self, calc):
         df = calc.calculate([full(production=55.0)])
@@ -92,6 +101,7 @@ class TestTrendLabels:
 #  Rolling mean
 # ------------------------------------------------------------------ #
 
+
 class TestRollingMean:
     def test_rolling_mean_3_column_exists(self, calc, three_months):
         assert "production_rolling_mean_3" in calc.calculate(three_months).columns
@@ -114,6 +124,7 @@ class TestRollingMean:
 #  Shamkh Total
 # ------------------------------------------------------------------ #
 
+
 class TestShamkhTotal:
     def test_shamkh_total_column_exists(self, calc, three_months):
         assert "shamkh_total" in calc.calculate(three_months).columns
@@ -130,6 +141,7 @@ class TestShamkhTotal:
 # ------------------------------------------------------------------ #
 #  Composite indicators
 # ------------------------------------------------------------------ #
+
 
 class TestCompositeIndicators:
     def test_demand_pressure_exists(self, calc, three_months):
@@ -177,6 +189,7 @@ class TestCompositeIndicators:
 #  Expectations gap
 # ------------------------------------------------------------------ #
 
+
 class TestExpectationsGap:
     def test_expectations_gap_exists(self, calc, three_months):
         assert "expectations_gap" in calc.calculate(three_months).columns
@@ -206,16 +219,19 @@ class TestExpectationsGap:
 #  Edge cases
 # ------------------------------------------------------------------ #
 
+
 class TestCalculatorEdgeCases:
     def test_pct_change_first_row_is_nan(self, calc):
         df = calc.calculate([full("1402-01"), full("1402-02")])
         assert pd.isna(df.loc[0, "production_change_pct"])
 
     def test_pct_change_second_row_correct(self, calc):
-        df = calc.calculate([
-            full("1402-01", production=50.0),
-            full("1402-02", production=55.0),
-        ])
+        df = calc.calculate(
+            [
+                full("1402-01", production=50.0),
+                full("1402-02", production=55.0),
+            ]
+        )
         assert abs(df.loc[1, "production_change_pct"] - 10.0) < 0.01
 
     def test_minimal_record_no_crash(self, calc):

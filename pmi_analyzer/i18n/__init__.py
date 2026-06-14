@@ -3,7 +3,6 @@
 from pathlib import Path
 from typing import Dict, Optional
 
-
 LOCALES_DIR = Path(__file__).parent / "locales"
 SUPPORTED_LOCALES = ["fa", "en"]
 _current_locale = "fa"
