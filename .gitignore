@@ -1,31 +1,43 @@
+# Python
 __pycache__/
 *.py[cod]
-*.pyo
-*.pyd
+*$py.class
+*.so
 .Python
-*.egg
-*.egg-info/
-dist/
 build/
+dist/
+*.egg-info/
 .eggs/
+
+# Virtual environments
 .venv/
 venv/
-.env
-*.env
-.DS_Store
-.idea/
-.vscode/
-*.iml
+env/
 
-# Test & coverage
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing
 .pytest_cache/
 .coverage
 htmlcov/
 
-# Output
-output/
-data/reports/
+# Data (generated - do NOT commit)
+data/pdfs/
+data/shamkh_raw.csv
+data/shamkh_data.csv
 
-# Jupyter
-.ipynb_checkpoints/
-*.ipynb
+# Data (committed intentionally - seed & cache)
+# data/shamkh_historical.csv  <- OK to commit
+# data/report_links.json      <- OK to commit
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Distribution
+*.egg
+*.whl
