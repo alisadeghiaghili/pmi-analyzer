@@ -19,6 +19,7 @@ def cli(locale: str):
 #  build-historical
 # --------------------------------------------------------------------------- #
 
+
 @cli.command("build-historical")
 @click.option(
     "--csv",
@@ -95,6 +96,7 @@ def build_historical(csv_path: str, pdf_dir: str, delay: float, verbose: bool):
     existing_months: set = set()
     if csv.exists():
         from pmi_analyzer.data.loader import load_historical
+
         existing_months = {m.month for m in load_historical(csv)}
 
     for m in all_metrics:
@@ -109,6 +111,7 @@ def build_historical(csv_path: str, pdf_dir: str, delay: float, verbose: bool):
 # --------------------------------------------------------------------------- #
 #  analyse
 # --------------------------------------------------------------------------- #
+
 
 @cli.command()
 @click.option("--download", is_flag=True, help="Download latest report from iccima.ir")
