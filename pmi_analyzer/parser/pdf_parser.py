@@ -7,7 +7,6 @@ import pdfplumber
 from pmi_analyzer.types import ShamkhMetrics
 from pmi_analyzer.exceptions import ParseError
 
-
 # ---------------------------------------------------------------------------
 # Label -> ShamkhMetrics field mapping (Persian row labels from the tables)
 # ---------------------------------------------------------------------------
@@ -44,10 +43,18 @@ _ROW_LABEL_MAP: Dict[str, str] = {
 
 # Persian month names -> zero-padded month number
 _MONTH_NAMES: Dict[str, str] = {
-    "فروردین": "01", "اردیبهشت": "02", "خرداد": "03",
-    "تیر": "04", "مرداد": "05", "شهریور": "06",
-    "مهر": "07", "آبان": "08", "آذر": "09",
-    "دی": "10", "بهمن": "11", "اسفند": "12",
+    "فروردین": "01",
+    "اردیبهشت": "02",
+    "خرداد": "03",
+    "تیر": "04",
+    "مرداد": "05",
+    "شهریور": "06",
+    "مهر": "07",
+    "آبان": "08",
+    "آذر": "09",
+    "دی": "10",
+    "بهمن": "11",
+    "اسفند": "12",
 }
 
 
@@ -198,9 +205,7 @@ class PDFParser:
             if m:
                 # extract 4-digit year (Arabic-Indic or ASCII)
                 snippet = m.group(0)
-                snippet_norm = snippet.translate(
-                    str.maketrans("۰۱۲۳۴۵۶۷۸۹", "0123456789")
-                )
+                snippet_norm = snippet.translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹", "0123456789"))
                 year_m = re.search(r"(1[34]\d{2})", snippet_norm)
                 if year_m:
                     return f"{year_m.group(1)}-{num}"
