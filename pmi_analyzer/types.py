@@ -28,7 +28,7 @@ class ShamkhMetrics:
 
     month: str
 
-    # Composite headline PMI index
+    # Composite headline PMI index (derived; not required for is_complete)
     pmi_total: Optional[float] = None  # شاخص کل مدیران خرید
 
     # Core PMI indicators
@@ -65,10 +65,13 @@ class ShamkhMetrics:
         )
 
     def is_complete(self) -> bool:
-        """Check if all metrics are present."""
+        """Check if all sub-indicator fields are present.
+
+        Note: pmi_total is excluded because it is a derived composite value
+        that may be calculated after the sub-indicators are populated.
+        """
         return all(
             [
-                self.pmi_total is not None,
                 self.production is not None,
                 self.new_orders is not None,
                 self.sales is not None,
