@@ -49,15 +49,15 @@ _SHAMSI_MONTHS = [
 # Rough mapping: Shamsi month index (1-based) → Gregorian month(s) of upload.
 # Reports are typically published 1-3 months after the reference month.
 _SHAMSI_TO_GREGORIAN_UPLOAD: dict[int, list[int]] = {
-    1: [4, 5],   # فروردین  → Apr-May
-    2: [5, 6],   # اردیبهشت → May-Jun
-    3: [6, 7],   # خرداد    → Jun-Jul
-    4: [7, 8],   # تیر      → Jul-Aug
-    5: [8, 9],   # مرداد    → Aug-Sep
+    1: [4, 5],  # فروردین  → Apr-May
+    2: [5, 6],  # اردیبهشت → May-Jun
+    3: [6, 7],  # خرداد    → Jun-Jul
+    4: [7, 8],  # تیر      → Jul-Aug
+    5: [8, 9],  # مرداد    → Aug-Sep
     6: [9, 10],  # شهریور   → Sep-Oct
-    7: [10, 11], # مهر      → Oct-Nov
-    8: [11, 12], # آبان     → Nov-Dec
-    9: [1, 2],   # آذر      → Jan-Feb  (year +1)
+    7: [10, 11],  # مهر      → Oct-Nov
+    8: [11, 12],  # آبان     → Nov-Dec
+    9: [1, 2],  # آذر      → Jan-Feb  (year +1)
     10: [2, 3],  # دی       → Feb-Mar
     11: [3, 4],  # بهمن     → Mar-Apr
     12: [4, 5],  # اسفند    → Apr-May
@@ -127,9 +127,7 @@ def _candidate_urls(base_url: str) -> list[str]:
                 f"شامخ-{month_name}-{year}.pdf",
                 f"شاخص-مدیران-خرید-{month_name}-{year}.pdf",
             ]:
-                candidates.append(
-                    f"{base_url}/wp-content/uploads/{upload_year}/{um:02d}/{fname}"
-                )
+                candidates.append(f"{base_url}/wp-content/uploads/{upload_year}/{um:02d}/{fname}")
 
     return candidates
 
