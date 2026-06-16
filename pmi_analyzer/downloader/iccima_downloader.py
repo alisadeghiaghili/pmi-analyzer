@@ -1,9 +1,13 @@
 """Downloader for Shamkh (PMI) reports from iccima.ir.
 
 Strategy (tried in order):
-  1. WordPress REST API  – fastest, no HTML parsing needed
-  2. Site-search scrape  – fallback when REST is blocked/unavailable
-  3. Candidate URL probe – last resort; tries predictable WP upload paths
+  1. WordPress REST API       – fastest, no HTML parsing needed
+  2. Site-search scrape       – fallback; Elementor-aware selectors
+  3. Candidate URL probe      – HEAD-probes predictable WP upload paths
+  4. Shamekh category page    – scrapes the dedicated category listing,
+                                visits the latest post, and clicks the
+                                Elementor download button (most robust
+                                against future URL changes)
 """
 
 from __future__ import annotations
@@ -45,15 +49,15 @@ _SHAMSI_MONTHS = [
 # Rough mapping: Shamsi month index (1-based) → Gregorian month(s) of upload.
 # Reports are typically published 1-3 months after the reference month.
 _SHAMSI_TO_GREGORIAN_UPLOAD: dict[int, list[int]] = {
-    1: [4, 5],  # فروردین  → Apr-May
-    2: [5, 6],  # اردیبهشت → May-Jun
-    3: [6, 7],  # خرداد    → Jun-Jul
-    4: [7, 8],  # تیر      → Jul-Aug
-    5: [8, 9],  # مرداد    → Aug-Sep
+    1: [4, 5],   # فروردین  → Apr-May
+    2: [5, 6],   # اردیبهشت → May-Jun
+    3: [6, 7],   # خرداد    → Jun-Jul
+    4: [7, 8],   # تیر      → Jul-Aug
+    5: [8, 9],   # مرداد    → Aug-Sep
     6: [9, 10],  # شهریور   → Sep-Oct
-    7: [10, 11],  # مهر      → Oct-Nov
-    8: [11, 12],  # آبان     → Nov-Dec
-    9: [1, 2],  # آذر      → Jan-Feb  (year +1)
+    7: [10, 11], # مهر      → Oct-Nov
+    8: [11, 12], # آبان     → Nov-Dec
+    9: [1, 2],   # آذر      → Jan-Feb  (year +1)
     10: [2, 3],  # دی       → Feb-Mar
     11: [3, 4],  # بهمن     → Mar-Apr
     12: [4, 5],  # اسفند    → Apr-May
@@ -61,6 +65,20 @@ _SHAMSI_TO_GREGORIAN_UPLOAD: dict[int, list[int]] = {
 
 _PDF_RE = re.compile(r"\.pdf$", re.IGNORECASE)
 _SHAMKH_RE = re.compile(r"شامخ|shamekh|shamkh", re.IGNORECASE)
+
+# iccima.ir uses Elementor; post links appear inside these containers.
+# Ordered from most-specific to least-specific.
+_ELEMENTOR_POST_LINK_SELECTORS = [
+    ".elementor-post__title a",
+    ".elementor-post .elementor-post__title a",
+    "h2.elementor-heading-title a",
+    "h3.elementor-heading-title a",
+    ".elementor-widget-heading a",
+    # Generic WP fallbacks
+    "h2.entry-title a",
+    "h3.entry-title a",
+    "article a[href]",
+]
 
 
 def _current_shamsi() -> tuple[int, int]:
@@ -103,12 +121,15 @@ def _candidate_urls(base_url: str) -> list[str]:
 
         for um in upload_months:
             for fname in [
-                f"شامخ-{month_name}-{year}.pdf",
-                f"شاخص-مدیران-خرید-{month_name}-{year}.pdf",
+                # Pattern confirmed from HTML: shamekh-{shamsi_year}.pdf
                 f"shamekh-{year}.pdf",
                 f"shamekh-{month_name}-{year}.pdf",
+                f"شامخ-{month_name}-{year}.pdf",
+                f"شاخص-مدیران-خرید-{month_name}-{year}.pdf",
             ]:
-                candidates.append(f"{base_url}/wp-content/uploads/{upload_year}/{um:02d}/{fname}")
+                candidates.append(
+                    f"{base_url}/wp-content/uploads/{upload_year}/{um:02d}/{fname}"
+                )
 
     return candidates
 
@@ -123,6 +144,8 @@ class ICCIMADownloader:
 
     WP_API = "https://iccima.ir/wp-json/wp/v2/posts"
     SEARCH_URL = "https://iccima.ir/?s=%D8%B4%D8%A7%D9%85%D8%AE"  # ?s=شامخ
+    # Dedicated shamekh category page (confirmed from HTML breadcrumb)
+    CATEGORY_URL = "https://iccima.ir/category/reports/statistics-center-reports/shamekh/"
 
     def __init__(self, config: DownloadConfig | None = None) -> None:
         self.config = config or DownloadConfig()
@@ -144,10 +167,11 @@ class ICCIMADownloader:
     def download_latest(self) -> Path:
         """Download the latest Shamkh report PDF.
 
-        Tries three strategies in order:
+        Tries four strategies in order:
           1. WordPress REST API
-          2. Site search page scrape
+          2. Site search page scrape (Elementor-aware)
           3. Candidate URL probe
+          4. Shamekh category page scrape
 
         Returns:
             Path to saved PDF file.
@@ -159,6 +183,7 @@ class ICCIMADownloader:
             self._find_via_wp_api()
             or self._find_via_search_page()
             or self._find_via_candidate_urls()
+            or self._find_via_category_page()
         )
 
         if not pdf_url:
@@ -177,6 +202,7 @@ class ICCIMADownloader:
             self._find_via_wp_api()
             or self._find_via_search_page()
             or self._find_via_candidate_urls()
+            or self._find_via_category_page()
         )
 
     # ------------------------------------------------------------------
@@ -208,11 +234,11 @@ class ICCIMADownloader:
         return None
 
     # ------------------------------------------------------------------
-    # Strategy 2: Site search page scrape
+    # Strategy 2: Site search page scrape (Elementor-aware)
     # ------------------------------------------------------------------
 
     def _find_via_search_page(self) -> Optional[str]:
-        """Scrape iccima.ir search results for a PDF link."""
+        """Scrape iccima.ir search results using Elementor-aware selectors."""
         try:
             resp = self.session.get(self.SEARCH_URL, timeout=self.config.timeout)
             resp.raise_for_status()
@@ -228,11 +254,18 @@ class ICCIMADownloader:
             logger.debug(f"Strategy 2 (search page direct) found: {pdf}")
             return pdf
 
-        # Second pass: visit each article link and look for PDF inside
-        for article_anchor in soup.select("article a[href], h2.entry-title a[href]")[:5]:
-            article_url = urljoin(self.config.base_url, article_anchor["href"])
-            if not _SHAMKH_RE.search(article_anchor.get_text() + article_url):
-                continue
+        # Second pass: collect post links using Elementor-aware selectors,
+        # then visit each post page looking for a PDF download button.
+        post_links: list[str] = []
+        for selector in _ELEMENTOR_POST_LINK_SELECTORS:
+            for a in soup.select(selector)[:5]:
+                href = a.get("href", "")
+                if href and _SHAMKH_RE.search(a.get_text() + href):
+                    full_url = urljoin(self.config.base_url, href)
+                    if full_url not in post_links:
+                        post_links.append(full_url)
+
+        for article_url in post_links[:5]:
             try:
                 ar = self.session.get(article_url, timeout=self.config.timeout)
                 ar.raise_for_status()
@@ -263,6 +296,87 @@ class ICCIMADownloader:
                         return url
             except Exception:
                 continue
+        return None
+
+    # ------------------------------------------------------------------
+    # Strategy 4: Shamekh category page scrape
+    # ------------------------------------------------------------------
+
+    def _find_via_category_page(self) -> Optional[str]:
+        """Scrape the dedicated shamekh category listing page.
+
+        iccima.ir has a stable category URL for all PMI reports:
+          /category/reports/statistics-center-reports/shamekh/
+
+        Each post in this listing is rendered by Elementor. We collect
+        post URLs using Elementor-aware selectors, visit the latest post,
+        then extract the PDF href from the Elementor download button
+        (an <a> with class elementor-button inside the post content).
+        """
+        try:
+            resp = self.session.get(self.CATEGORY_URL, timeout=self.config.timeout)
+            resp.raise_for_status()
+        except Exception as exc:
+            logger.debug(f"Category page unavailable: {exc}")
+            return None
+
+        soup = BeautifulSoup(resp.text, "html.parser")
+
+        # Collect post URLs from the category listing
+        post_urls: list[str] = []
+        for selector in _ELEMENTOR_POST_LINK_SELECTORS:
+            for a in soup.select(selector):
+                href = a.get("href", "")
+                if href:
+                    full_url = urljoin(self.config.base_url, href)
+                    if full_url not in post_urls:
+                        post_urls.append(full_url)
+            if post_urls:
+                break  # stop at first selector that yields results
+
+        if not post_urls:
+            # Fallback: any internal link that looks like a shamekh post
+            for a in soup.find_all("a", href=True):
+                href = a["href"]
+                if _SHAMKH_RE.search(href) and href.startswith(self.config.base_url):
+                    if href not in post_urls:
+                        post_urls.append(href)
+
+        logger.debug(f"Strategy 4: found {len(post_urls)} post URL(s) on category page")
+
+        # Visit each post (most recent first) and look for the PDF button
+        for post_url in post_urls[:5]:
+            try:
+                pr = self.session.get(post_url, timeout=self.config.timeout)
+                pr.raise_for_status()
+                pr_soup = BeautifulSoup(pr.text, "html.parser")
+
+                # Primary: Elementor button widget linking to a PDF
+                # (confirmed pattern from HTML: <a class="elementor-button ...">دانلود</a>)
+                for a in pr_soup.select("a.elementor-button"):
+                    href = a.get("href", "")
+                    if _PDF_RE.search(href):
+                        pdf_url = urljoin(self.config.base_url, href)
+                        logger.debug(f"Strategy 4 (elementor-button) found: {pdf_url}")
+                        return pdf_url
+
+                # Secondary: any PDF link in post content area
+                for content_sel in [
+                    ".elementor-widget-container",
+                    ".entry-content",
+                    ".post-content",
+                ]:
+                    content_div = pr_soup.select_one(content_sel)
+                    if content_div:
+                        pdf = self._first_pdf_link(content_div, self.config.base_url)
+                        if pdf:
+                            logger.debug(f"Strategy 4 (post content) found: {pdf}")
+                            return pdf
+
+                time.sleep(0.5)
+            except Exception:
+                continue
+
         return None
 
     # ------------------------------------------------------------------
