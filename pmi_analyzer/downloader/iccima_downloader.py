@@ -51,14 +51,14 @@ _SHAMSI_MONTHS = [
 # Shamsi month index (1-based) → Gregorian month(s) of upload.
 # Reports are typically published 1-3 months after the reference month.
 _SHAMSI_TO_GREGORIAN_UPLOAD: dict[int, list[int]] = {
-    1: [4, 5, 6],   # فروردین  → Apr-Jun  (confirmed: 2026/06)
-    2: [5, 6, 7],   # اردیبهشت → May-Jul
-    3: [6, 7, 8],   # خرداد    → Jun-Aug
-    4: [7, 8, 9],   # تیر      → Jul-Sep
+    1: [4, 5, 6],  # فروردین  → Apr-Jun  (confirmed: 2026/06)
+    2: [5, 6, 7],  # اردیبهشت → May-Jul
+    3: [6, 7, 8],  # خرداد    → Jun-Aug
+    4: [7, 8, 9],  # تیر      → Jul-Sep
     5: [8, 9, 10],  # مرداد    → Aug-Oct
-    6: [9, 10, 11], # شهریور   → Sep-Nov
-    7: [10, 11, 12],# مهر      → Oct-Dec
-    8: [11, 12, 1], # آبان     → Nov-Jan
+    6: [9, 10, 11],  # شهریور   → Sep-Nov
+    7: [10, 11, 12],  # مهر      → Oct-Dec
+    8: [11, 12, 1],  # آبان     → Nov-Jan
     9: [12, 1, 2],  # آذر      → Dec-Feb
     10: [1, 2, 3],  # دی       → Jan-Mar
     11: [2, 3, 4],  # بهمن     → Feb-Apr
@@ -85,11 +85,13 @@ def _current_shamsi() -> tuple[int, int]:
     """Return (shamsi_year, shamsi_month) for today."""
     try:
         import jdatetime
+
         today = jdatetime.date.today()
         return today.year, today.month
     except ImportError:
         pass
     import datetime
+
     today = datetime.date.today()
     g_year, g_month = today.year, today.month
     shamsi_year = g_year - 621 if g_month >= 4 else g_year - 622
@@ -189,11 +191,11 @@ class ICCIMADownloader:
             DownloadError: if all strategies fail.
         """
         pdf_url = (
-            self._find_via_candidate_urls()       # Strategy 3 first – fastest
-            or self._find_via_reports_page()      # Strategy 0
-            or self._find_via_wp_api()            # Strategy 1
-            or self._find_via_search_page()       # Strategy 2
-            or self._find_via_category_page()     # Strategy 4
+            self._find_via_candidate_urls()  # Strategy 3 first – fastest
+            or self._find_via_reports_page()  # Strategy 0
+            or self._find_via_wp_api()  # Strategy 1
+            or self._find_via_search_page()  # Strategy 2
+            or self._find_via_category_page()  # Strategy 4
         )
 
         if not pdf_url:
