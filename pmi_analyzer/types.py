@@ -28,6 +28,9 @@ class ShamkhMetrics:
 
     month: str
 
+    # Composite headline PMI index
+    pmi_total: Optional[float] = None  # شاخص کل مدیران خرید
+
     # Core PMI indicators
     production: Optional[float] = None  # تولید
     new_orders: Optional[float] = None  # سفارشات جدید
@@ -47,6 +50,7 @@ class ShamkhMetrics:
         """Validate that at least one metric is present."""
         return any(
             [
+                self.pmi_total is not None,
                 self.production is not None,
                 self.new_orders is not None,
                 self.sales is not None,
@@ -64,6 +68,7 @@ class ShamkhMetrics:
         """Check if all metrics are present."""
         return all(
             [
+                self.pmi_total is not None,
                 self.production is not None,
                 self.new_orders is not None,
                 self.sales is not None,
