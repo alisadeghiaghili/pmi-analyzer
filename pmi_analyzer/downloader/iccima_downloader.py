@@ -28,24 +28,32 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 _SHAMSI_MONTHS = [
-    "فروردین", "اردیبهشت", "خرداد",
-    "تیر",     "مرداد",    "شهریور",
-    "مهر",     "آبان",     "آذر",
-    "دی",      "بهمن",     "اسفند",
+    "فروردین",
+    "اردیبهشت",
+    "خرداد",
+    "تیر",
+    "مرداد",
+    "شهریور",
+    "مهر",
+    "آبان",
+    "آذر",
+    "دی",
+    "بهمن",
+    "اسفند",
 ]
 
 # Rough mapping: Shamsi month index (1-based) → Gregorian month(s) of upload.
 # Reports are typically published 1-3 months after the reference month.
 _SHAMSI_TO_GREGORIAN_UPLOAD: dict[int, list[int]] = {
-    1: [4, 5],   # فروردین  → Apr-May
-    2: [5, 6],   # اردیبهشت → May-Jun
-    3: [6, 7],   # خرداد    → Jun-Jul
-    4: [7, 8],   # تیر      → Jul-Aug
-    5: [8, 9],   # مرداد    → Aug-Sep
+    1: [4, 5],  # فروردین  → Apr-May
+    2: [5, 6],  # اردیبهشت → May-Jun
+    3: [6, 7],  # خرداد    → Jun-Jul
+    4: [7, 8],  # تیر      → Jul-Aug
+    5: [8, 9],  # مرداد    → Aug-Sep
     6: [9, 10],  # شهریور   → Sep-Oct
-    7: [10, 11], # مهر      → Oct-Nov
-    8: [11, 12], # آبان     → Nov-Dec
-    9: [1, 2],   # آذر      → Jan-Feb  (year +1)
+    7: [10, 11],  # مهر      → Oct-Nov
+    8: [11, 12],  # آبان     → Nov-Dec
+    9: [1, 2],  # آذر      → Jan-Feb  (year +1)
     10: [2, 3],  # دی       → Feb-Mar
     11: [3, 4],  # بهمن     → Mar-Apr
     12: [4, 5],  # اسفند    → Apr-May
@@ -59,12 +67,14 @@ def _current_shamsi() -> tuple[int, int]:
     """Return (shamsi_year, shamsi_month) for today using jdatetime if available."""
     try:
         import jdatetime
+
         today = jdatetime.date.today()
         return today.year, today.month
     except ImportError:
         pass
     # Rough fallback without jdatetime
     import datetime
+
     today = datetime.date.today()
     g_year, g_month = today.year, today.month
     shamsi_year = g_year - 621 if g_month >= 4 else g_year - 622
@@ -75,6 +85,7 @@ def _current_shamsi() -> tuple[int, int]:
 def _candidate_urls(base_url: str) -> list[str]:
     """Generate plausible PDF upload URLs for the last ~3 Shamsi months."""
     import datetime
+
     sy, sm = _current_shamsi()
     today = datetime.date.today()
 
@@ -97,9 +108,7 @@ def _candidate_urls(base_url: str) -> list[str]:
                 f"shamekh-{year}.pdf",
                 f"shamekh-{month_name}-{year}.pdf",
             ]:
-                candidates.append(
-                    f"{base_url}/wp-content/uploads/{upload_year}/{um:02d}/{fname}"
-                )
+                candidates.append(f"{base_url}/wp-content/uploads/{upload_year}/{um:02d}/{fname}")
 
     return candidates
 
