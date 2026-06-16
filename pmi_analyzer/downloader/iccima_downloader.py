@@ -1,13 +1,15 @@
 """Downloader for Shamkh (PMI) reports from iccima.ir.
 
 Strategy (tried in order):
+  0. Reports listing page (/گزارش-ها/) – most reliable; lists all posts
   1. WordPress REST API       – fastest, no HTML parsing needed
   2. Site-search scrape       – fallback; Elementor-aware selectors
-  3. Candidate URL probe      – HEAD-probes predictable WP upload paths
-  4. Shamekh category page    – scrapes the dedicated category listing,
-                                visits the latest post, and clicks the
-                                Elementor download button (most robust
-                                against future URL changes)
+  3. Candidate URL probe      – HEAD-probes confirmed WP upload paths
+  4. Shamekh category page    – scrapes the dedicated category listing
+
+Confirmed upload path pattern (from live site, June 2026):
+  wp-content/uploads/{gregorian_year}/{greg_month:02d}/{jalali_year_2d}-{shamsi_name}.pdf
+  e.g. wp-content/uploads/2026/06/405-فروردین.pdf
 """
 
 from __future__ import annotations
@@ -46,35 +48,33 @@ _SHAMSI_MONTHS = [
     "اسفند",
 ]
 
-# Rough mapping: Shamsi month index (1-based) → Gregorian month(s) of upload.
+# Shamsi month index (1-based) → Gregorian month(s) of upload.
 # Reports are typically published 1-3 months after the reference month.
 _SHAMSI_TO_GREGORIAN_UPLOAD: dict[int, list[int]] = {
-    1: [4, 5],  # فروردین  → Apr-May
-    2: [5, 6],  # اردیبهشت → May-Jun
-    3: [6, 7],  # خرداد    → Jun-Jul
-    4: [7, 8],  # تیر      → Jul-Aug
-    5: [8, 9],  # مرداد    → Aug-Sep
-    6: [9, 10],  # شهریور   → Sep-Oct
-    7: [10, 11],  # مهر      → Oct-Nov
-    8: [11, 12],  # آبان     → Nov-Dec
-    9: [1, 2],  # آذر      → Jan-Feb  (year +1)
-    10: [2, 3],  # دی       → Feb-Mar
-    11: [3, 4],  # بهمن     → Mar-Apr
-    12: [4, 5],  # اسفند    → Apr-May
+    1: [4, 5, 6],   # فروردین  → Apr-Jun  (confirmed: 2026/06)
+    2: [5, 6, 7],   # اردیبهشت → May-Jul
+    3: [6, 7, 8],   # خرداد    → Jun-Aug
+    4: [7, 8, 9],   # تیر      → Jul-Sep
+    5: [8, 9, 10],  # مرداد    → Aug-Oct
+    6: [9, 10, 11], # شهریور   → Sep-Nov
+    7: [10, 11, 12],# مهر      → Oct-Dec
+    8: [11, 12, 1], # آبان     → Nov-Jan
+    9: [12, 1, 2],  # آذر      → Dec-Feb
+    10: [1, 2, 3],  # دی       → Jan-Mar
+    11: [2, 3, 4],  # بهمن     → Feb-Apr
+    12: [3, 4, 5],  # اسفند    → Mar-May
 }
 
 _PDF_RE = re.compile(r"\.pdf$", re.IGNORECASE)
-_SHAMKH_RE = re.compile(r"شامخ|shamekh|shamkh", re.IGNORECASE)
+_SHAMKH_RE = re.compile(r"شامخ|shamekh|shamkh|pmi", re.IGNORECASE)
 
-# iccima.ir uses Elementor; post links appear inside these containers.
-# Ordered from most-specific to least-specific.
+# Elementor post link selectors (most-specific first)
 _ELEMENTOR_POST_LINK_SELECTORS = [
     ".elementor-post__title a",
     ".elementor-post .elementor-post__title a",
     "h2.elementor-heading-title a",
     "h3.elementor-heading-title a",
     ".elementor-widget-heading a",
-    # Generic WP fallbacks
     "h2.entry-title a",
     "h3.entry-title a",
     "article a[href]",
@@ -82,17 +82,14 @@ _ELEMENTOR_POST_LINK_SELECTORS = [
 
 
 def _current_shamsi() -> tuple[int, int]:
-    """Return (shamsi_year, shamsi_month) for today using jdatetime if available."""
+    """Return (shamsi_year, shamsi_month) for today."""
     try:
         import jdatetime
-
         today = jdatetime.date.today()
         return today.year, today.month
     except ImportError:
         pass
-    # Rough fallback without jdatetime
     import datetime
-
     today = datetime.date.today()
     g_year, g_month = today.year, today.month
     shamsi_year = g_year - 621 if g_month >= 4 else g_year - 622
@@ -101,14 +98,23 @@ def _current_shamsi() -> tuple[int, int]:
 
 
 def _candidate_urls(base_url: str) -> list[str]:
-    """Generate plausible PDF upload URLs for the last ~3 Shamsi months."""
+    """
+    Generate plausible PDF upload URLs for the last ~3 Shamsi months.
+
+    Confirmed pattern from iccima.ir (June 2026):
+      /wp-content/uploads/2026/06/405-فروردین.pdf
+
+    i.e.  {jalali_year_last3digits}-{shamsi_month_name}.pdf
+    """
     import datetime
 
     sy, sm = _current_shamsi()
     today = datetime.date.today()
+    g_year = today.year
 
     candidates: list[str] = []
-    for delta in range(3):  # current month and 2 months back
+
+    for delta in range(4):  # current + 3 months back
         month_idx = sm - delta
         year = sy
         if month_idx <= 0:
@@ -117,17 +123,28 @@ def _candidate_urls(base_url: str) -> list[str]:
 
         month_name = _SHAMSI_MONTHS[month_idx - 1]
         upload_months = _SHAMSI_TO_GREGORIAN_UPLOAD.get(month_idx, [today.month])
-        upload_year = today.year
 
-        for um in upload_months:
-            for fname in [
-                # Pattern confirmed from HTML: shamekh-{shamsi_year}.pdf
-                f"shamekh-{year}.pdf",
-                f"shamekh-{month_name}-{year}.pdf",
-                f"شامخ-{month_name}-{year}.pdf",
-                f"شاخص-مدیران-خرید-{month_name}-{year}.pdf",
-            ]:
-                candidates.append(f"{base_url}/wp-content/uploads/{upload_year}/{um:02d}/{fname}")
+        # Year offset: if shamsi month rolled back to previous year, upload
+        # year might also be off by one.
+        for year_offset in [0, -1]:
+            upload_year = g_year + year_offset
+            # short year: last 3 digits (e.g. 1405 -> "405")
+            year_short = str(year)[-3:]
+            year_full = str(year)
+
+            for um in upload_months:
+                for fname in [
+                    # Confirmed pattern: 405-فروردین.pdf
+                    f"{year_short}-{month_name}.pdf",
+                    # Variants observed in older reports
+                    f"shamekh-{month_name}-{year_full}.pdf",
+                    f"شامخ-{month_name}-{year_full}.pdf",
+                    f"شاخص-مدیران-خرید-{month_name}-{year_full}.pdf",
+                    f"shamekh-{year_full}.pdf",
+                ]:
+                    candidates.append(
+                        f"{base_url}/wp-content/uploads/{upload_year}/{um:02d}/{fname}"
+                    )
 
     return candidates
 
@@ -142,7 +159,7 @@ class ICCIMADownloader:
 
     WP_API = "https://iccima.ir/wp-json/wp/v2/posts"
     SEARCH_URL = "https://iccima.ir/?s=%D8%B4%D8%A7%D9%85%D8%AE"  # ?s=شامخ
-    # Dedicated shamekh category page (confirmed from HTML breadcrumb)
+    REPORTS_URL = "https://iccima.ir/گزارش-ها/"  # reports listing page
     CATEGORY_URL = "https://iccima.ir/category/reports/statistics-center-reports/shamekh/"
 
     def __init__(self, config: DownloadConfig | None = None) -> None:
@@ -165,12 +182,6 @@ class ICCIMADownloader:
     def download_latest(self) -> Path:
         """Download the latest Shamkh report PDF.
 
-        Tries four strategies in order:
-          1. WordPress REST API
-          2. Site search page scrape (Elementor-aware)
-          3. Candidate URL probe
-          4. Shamekh category page scrape
-
         Returns:
             Path to saved PDF file.
 
@@ -178,10 +189,11 @@ class ICCIMADownloader:
             DownloadError: if all strategies fail.
         """
         pdf_url = (
-            self._find_via_wp_api()
-            or self._find_via_search_page()
-            or self._find_via_candidate_urls()
-            or self._find_via_category_page()
+            self._find_via_candidate_urls()       # Strategy 3 first – fastest
+            or self._find_via_reports_page()      # Strategy 0
+            or self._find_via_wp_api()            # Strategy 1
+            or self._find_via_search_page()       # Strategy 2
+            or self._find_via_category_page()     # Strategy 4
         )
 
         if not pdf_url:
@@ -197,11 +209,54 @@ class ICCIMADownloader:
     def get_latest_url(self) -> Optional[str]:
         """Return the PDF URL without downloading. Useful for debugging."""
         return (
-            self._find_via_wp_api()
+            self._find_via_candidate_urls()
+            or self._find_via_reports_page()
+            or self._find_via_wp_api()
             or self._find_via_search_page()
-            or self._find_via_candidate_urls()
             or self._find_via_category_page()
         )
+
+    # ------------------------------------------------------------------
+    # Strategy 0: Reports listing page (iccima.ir/گزارش-ها/)
+    # ------------------------------------------------------------------
+
+    def _find_via_reports_page(self) -> Optional[str]:
+        """Scrape the reports listing page which shows all PMI posts."""
+        try:
+            resp = self.session.get(self.REPORTS_URL, timeout=self.config.timeout)
+            resp.raise_for_status()
+        except Exception as exc:
+            logger.debug(f"Reports page unavailable: {exc}")
+            return None
+
+        soup = BeautifulSoup(resp.text, "html.parser")
+
+        # Find links whose text or href contains شامخ / PMI
+        post_urls: list[str] = []
+        for a in soup.find_all("a", href=True):
+            href = a["href"]
+            text = a.get_text()
+            if _SHAMKH_RE.search(text + href):
+                full_url = urljoin(self.config.base_url, href)
+                if full_url not in post_urls and not _PDF_RE.search(href):
+                    post_urls.append(full_url)
+
+        logger.debug(f"Strategy 0: {len(post_urls)} post(s) found on reports page")
+
+        for post_url in post_urls[:5]:
+            try:
+                pr = self.session.get(post_url, timeout=self.config.timeout)
+                pr.raise_for_status()
+                pr_soup = BeautifulSoup(pr.text, "html.parser")
+                pdf = self._first_pdf_link(pr_soup, self.config.base_url)
+                if pdf:
+                    logger.debug(f"Strategy 0 found: {pdf}")
+                    return pdf
+                time.sleep(0.3)
+            except Exception:
+                continue
+
+        return None
 
     # ------------------------------------------------------------------
     # Strategy 1: WordPress REST API
@@ -246,14 +301,10 @@ class ICCIMADownloader:
 
         soup = BeautifulSoup(resp.text, "html.parser")
 
-        # First pass: direct PDF anchors on the search results page
         pdf = self._first_pdf_link(soup, self.config.base_url)
         if pdf:
-            logger.debug(f"Strategy 2 (search page direct) found: {pdf}")
             return pdf
 
-        # Second pass: collect post links using Elementor-aware selectors,
-        # then visit each post page looking for a PDF download button.
         post_links: list[str] = []
         for selector in _ELEMENTOR_POST_LINK_SELECTORS:
             for a in soup.select(selector)[:5]:
@@ -270,7 +321,6 @@ class ICCIMADownloader:
                 ar_soup = BeautifulSoup(ar.text, "html.parser")
                 pdf = self._first_pdf_link(ar_soup, self.config.base_url)
                 if pdf:
-                    logger.debug(f"Strategy 2 (article page) found: {pdf}")
                     return pdf
                 time.sleep(0.5)
             except Exception:
@@ -279,11 +329,15 @@ class ICCIMADownloader:
         return None
 
     # ------------------------------------------------------------------
-    # Strategy 3: Candidate URL probe
+    # Strategy 3: Candidate URL probe (HIGHEST PRIORITY – called first)
     # ------------------------------------------------------------------
 
     def _find_via_candidate_urls(self) -> Optional[str]:
-        """HEAD-probe a list of predictable WP upload paths."""
+        """HEAD-probe a list of predictable WP upload paths.
+
+        Confirmed pattern (June 2026):
+          /wp-content/uploads/2026/06/405-فروردین.pdf
+        """
         for url in _candidate_urls(self.config.base_url):
             try:
                 r = self.session.head(url, timeout=10, allow_redirects=True)
@@ -301,16 +355,7 @@ class ICCIMADownloader:
     # ------------------------------------------------------------------
 
     def _find_via_category_page(self) -> Optional[str]:
-        """Scrape the dedicated shamekh category listing page.
-
-        iccima.ir has a stable category URL for all PMI reports:
-          /category/reports/statistics-center-reports/shamekh/
-
-        Each post in this listing is rendered by Elementor. We collect
-        post URLs using Elementor-aware selectors, visit the latest post,
-        then extract the PDF href from the Elementor download button
-        (an <a> with class elementor-button inside the post content).
-        """
+        """Scrape the dedicated shamekh category listing page."""
         try:
             resp = self.session.get(self.CATEGORY_URL, timeout=self.config.timeout)
             resp.raise_for_status()
@@ -320,7 +365,6 @@ class ICCIMADownloader:
 
         soup = BeautifulSoup(resp.text, "html.parser")
 
-        # Collect post URLs from the category listing
         post_urls: list[str] = []
         for selector in _ELEMENTOR_POST_LINK_SELECTORS:
             for a in soup.select(selector):
@@ -330,35 +374,26 @@ class ICCIMADownloader:
                     if full_url not in post_urls:
                         post_urls.append(full_url)
             if post_urls:
-                break  # stop at first selector that yields results
+                break
 
         if not post_urls:
-            # Fallback: any internal link that looks like a shamekh post
             for a in soup.find_all("a", href=True):
                 href = a["href"]
                 if _SHAMKH_RE.search(href) and href.startswith(self.config.base_url):
                     if href not in post_urls:
                         post_urls.append(href)
 
-        logger.debug(f"Strategy 4: found {len(post_urls)} post URL(s) on category page")
-
-        # Visit each post (most recent first) and look for the PDF button
         for post_url in post_urls[:5]:
             try:
                 pr = self.session.get(post_url, timeout=self.config.timeout)
                 pr.raise_for_status()
                 pr_soup = BeautifulSoup(pr.text, "html.parser")
 
-                # Primary: Elementor button widget linking to a PDF
-                # (confirmed pattern from HTML: <a class="elementor-button ...">دانلود</a>)
                 for a in pr_soup.select("a.elementor-button"):
                     href = a.get("href", "")
                     if _PDF_RE.search(href):
-                        pdf_url = urljoin(self.config.base_url, href)
-                        logger.debug(f"Strategy 4 (elementor-button) found: {pdf_url}")
-                        return pdf_url
+                        return urljoin(self.config.base_url, href)
 
-                # Secondary: any PDF link in post content area
                 for content_sel in [
                     ".elementor-widget-container",
                     ".entry-content",
@@ -368,7 +403,6 @@ class ICCIMADownloader:
                     if content_div:
                         pdf = self._first_pdf_link(content_div, self.config.base_url)
                         if pdf:
-                            logger.debug(f"Strategy 4 (post content) found: {pdf}")
                             return pdf
 
                 time.sleep(0.5)
@@ -381,13 +415,12 @@ class ICCIMADownloader:
     # Helpers
     # ------------------------------------------------------------------
 
-    def _first_pdf_link(self, soup: BeautifulSoup, base: str) -> Optional[str]:
+    def _first_pdf_link(self, soup, base: str) -> Optional[str]:
         """Return the first .pdf href in *soup* that looks like a Shamkh report."""
         for a in soup.find_all("a", href=True):
             href: str = a["href"]
             if _PDF_RE.search(href) and _SHAMKH_RE.search(href):
                 return urljoin(base, href)
-        # Relax: any PDF if the page is already shamkh-related
         for a in soup.find_all("a", href=True):
             href = a["href"]
             if _PDF_RE.search(href):
@@ -404,7 +437,6 @@ class ICCIMADownloader:
 
         self.config.output_dir.mkdir(parents=True, exist_ok=True)
 
-        # Derive a meaningful filename from the URL
         url_filename = Path(pdf_url.split("?")[0]).name or "shamkh_latest.pdf"
         output_path = self.config.output_dir / url_filename
 
