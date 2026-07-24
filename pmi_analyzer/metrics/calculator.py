@@ -1,4 +1,20 @@
-"""Metric calculator for Shamkh sub-indicators."""
+"""Metric calculator for Shamkh sub-indicators.
+
+This module provides the MetricsCalculator class for computing derived
+indicators, trends, and composite metrics from raw PMI (Shamkh) data.
+
+Typical usage::
+
+    from pmi_analyzer.parser.pdf_parser import PDFParser
+    from pmi_analyzer.metrics.calculator import MetricsCalculator
+
+    parser = PDFParser()
+    results = parser.parse(Path("data/pdfs/report.pdf"))
+
+    calculator = MetricsCalculator()
+    df = calculator.calculate(results)
+    print(df.columns.tolist())
+"""
 
 import pandas as pd
 from typing import List
@@ -6,9 +22,28 @@ from pmi_analyzer.types import ShamkhMetrics
 
 
 class MetricsCalculator:
-    """Calculator for Shamkh metrics and derived indicators."""
+    """Calculator for Shamkh metrics and derived indicators.
 
-    SUB_INDICATORS = [
+    This class takes raw ShamkhMetrics data and computes:
+    - Month-over-month percentage changes
+    - Trend classifications (expansion/contraction)
+    - 3-month rolling means
+    - Composite indicators (demand pressure, labor stress, etc.)
+
+    Attributes:
+        SUB_INDICATORS: List of column names for the 11 PMI sub-indicators.
+
+    Example:
+        >>> from pmi_analyzer.metrics.calculator import MetricsCalculator
+        >>> from pmi_analyzer.types import ShamkhMetrics
+        >>> m = ShamkhMetrics(month="1405-03", pmi_total=45.9, production=48.2)
+        >>> calc = MetricsCalculator()
+        >>> df = calc.calculate([m])
+        >>> "production_trend" in df.columns
+        True
+    """
+
+    SUB_INDICATORS: List[str] = [
         "production",
         "new_orders",
         "sales",
@@ -23,14 +58,32 @@ class MetricsCalculator:
     ]
 
     def calculate(self, metrics: List[ShamkhMetrics]) -> pd.DataFrame:
-        """
-        Calculate all metrics and derived indicators.
+        """Calculate all metrics and derived indicators.
+
+        Processes raw PMI data and adds calculated columns including:
+        - `{indicator}_change_pct`: Month-over-month percentage change
+        - `{indicator}_trend`: Trend classification (رونق/رکود/خنثی)
+        - `{indicator}_rolling_mean_3`: 3-month rolling average
+        - Composite indicators (demand pressure, labor stress, etc.)
 
         Args:
-            metrics: List of ShamkhMetrics
+            metrics: List of ShamkhMetrics objects to process.
 
         Returns:
-            DataFrame with all calculated metrics
+            DataFrame with original data plus calculated columns.
+
+        Raises:
+            ValueError: If metrics list is empty.
+
+        Example:
+            >>> from pmi_analyzer.metrics.calculator import MetricsCalculator
+            >>> from pmi_analyzer.types import ShamkhMetrics
+            >>> m1 = ShamkhMetrics(month="1405-01", production=48.0)
+            >>> m2 = ShamkhMetrics(month="1405-02", production=49.0)
+            >>> calc = MetricsCalculator()
+            >>> df = calc.calculate([m1, m2])
+            >>> df["production_trend"].iloc[1]
+            'رونق'
         """
         if not metrics:
             raise ValueError("No metrics provided")
@@ -70,7 +123,18 @@ class MetricsCalculator:
         return df
 
     def _calculate_indicator_metrics(self, df: pd.DataFrame, col: str) -> pd.DataFrame:
-        """Calculate metrics for a single indicator."""
+        """Calculate metrics for a single indicator.
+
+        Adds percentage change, trend classification, and rolling mean
+        columns for the specified indicator.
+
+        Args:
+            df: DataFrame containing the indicator column.
+            col: Name of the indicator column to calculate metrics for.
+
+        Returns:
+            DataFrame with new calculated columns added.
+        """
         df[f"{col}_change_pct"] = df[col].pct_change() * 100
         df[f"{col}_trend"] = df[col].apply(
             lambda x: (
@@ -81,7 +145,17 @@ class MetricsCalculator:
         return df
 
     def _calculate_expectations_metrics(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Calculate production expectations vs actual production gap."""
+        """Calculate production expectations vs actual production gap.
+
+        Computes the gap between expected and actual production, which
+        indicates whether businesses are optimistic or pessimistic.
+
+        Args:
+            df: DataFrame with production and production_expectations columns.
+
+        Returns:
+            DataFrame with expectations gap columns added.
+        """
         if "production_expectations" not in df.columns or "production" not in df.columns:
             return df
         if not (df["production_expectations"].notna().any() and df["production"].notna().any()):
@@ -106,7 +180,23 @@ class MetricsCalculator:
         return df
 
     def _calculate_composite_indicators(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Calculate composite/advanced indicators."""
+        """Calculate composite and advanced indicators.
+
+        Computes derived indicators that combine multiple raw sub-indicators:
+
+        - **Demand Pressure**: Average of new_orders, sales, exports
+        - **Production Capacity**: Average of production, inventories
+        - **Labor Market Stress**: Inverse of employment (100 - employment)
+        - **Price Inflation Signal**: input_price - 50
+        - **Recession Severity**: 50 - shamkh_total
+        - **Supply Chain Stress**: Low inventory + low orders
+
+        Args:
+            df: DataFrame with raw PMI sub-indicator columns.
+
+        Returns:
+            DataFrame with composite indicator columns added.
+        """
         # 1. Demand Pressure Index
         demand_cols = ["new_orders", "sales", "exports"]
         if all(c in df.columns and df[c].notna().any() for c in demand_cols):

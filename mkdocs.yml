@@ -1,0 +1,86 @@
+site_name: PMI Analyzer Documentation
+site_url: https://alisadeghiaghili.github.io/pmi-analyzer/
+site_description: Documentation for PMI Analyzer - Iran's Shamkh (PMI) analysis tool
+site_author: Ali Sadeghi
+
+repo_name: alisadeghiaghili/pmi-analyzer
+repo_url: https://github.com/alisadeghiaghili/pmi-analyzer
+
+theme:
+  name: material
+  language: en
+  palette:
+    - scheme: default
+      primary: teal
+      accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: teal
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+
+plugins:
+  - search
+  - i18n:
+      languages:
+        - locale: en
+          default: true
+          name: English
+        - locale: fa
+          name: فارسی
+        - locale: de
+          name: Deutsch
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quick-start.md
+    - CLI Usage: getting-started/cli-usage.md
+  - Concepts:
+    - What is PMI?: concepts/what-is-pmi.md
+    - Shamkh Explained: concepts/shamkh-explained.md
+    - Sub-Indicators: concepts/sub-indicators.md
+  - User Guide:
+    - Parsing PDFs: user-guide/parsing-pdfs.md
+    - Export Formats: user-guide/export-formats.md
+  - Changelog: changelog.md
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.arithmatex:
+      generic: true
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/alisadeghiaghili
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/pmi-analyzer/
+
+copyright: Copyright &copy; 2024 Ali Sadeghi - MIT License
