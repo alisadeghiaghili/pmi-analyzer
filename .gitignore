@@ -41,3 +41,12 @@ Thumbs.db
 # Distribution
 *.egg
 *.whl
+
+# MiMoCode internal files
+.mimocode/
+
+# Build output
+site/
+
+# Generated exports
+data/output/
