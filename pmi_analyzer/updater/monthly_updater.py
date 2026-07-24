@@ -9,10 +9,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
+from pmi_analyzer.data.loader import append_record, load_historical
 from pmi_analyzer.scraper.archive_scraper import ArchiveScraper, ReportLink
 from pmi_analyzer.scraper.batch_downloader import BatchDownloader
 from pmi_analyzer.scraper.batch_parser import BatchParser
-from pmi_analyzer.data.loader import load_historical, append_record
 from pmi_analyzer.types import ShamkhMetrics
 
 logger = logging.getLogger(__name__)

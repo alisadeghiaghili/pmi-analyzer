@@ -1,7 +1,7 @@
 """Unit tests for Deduplicator."""
 
-from pmi_analyzer.types import ShamkhMetrics
 from pmi_analyzer.scraper.deduplicator import Deduplicator
+from pmi_analyzer.types import ShamkhMetrics
 
 
 def make_metric(month: str, production: float = None, new_orders: float = None) -> ShamkhMetrics:

@@ -1,13 +1,15 @@
 """Plotly plotter for Shamkh metrics."""
 
+from pathlib import Path
+from typing import Optional
+
+import pandas as pd
 import plotly.graph_objects as go
 import plotly.io as pio
 from plotly.subplots import make_subplots
-import pandas as pd
-from pathlib import Path
-from typing import Optional
-from pmi_analyzer.types import PlotConfig
+
 from pmi_analyzer.i18n import _
+from pmi_analyzer.types import PlotConfig
 
 pio.templates.default = "plotly_white"
 

@@ -1,8 +1,10 @@
 """CLI for pmi_analyzer."""
 
 import logging
-import click
 from pathlib import Path
+
+import click
+
 from pmi_analyzer.i18n import _, set_locale
 
 DEFAULT_HISTORICAL_CSV = Path("data") / "shamkh_historical.csv"
@@ -56,10 +58,10 @@ def build_historical(csv_path: str, pdf_dir: str, delay: float, verbose: bool):
     else:
         logging.basicConfig(level=logging.INFO, format="%(message)s")
 
+    from pmi_analyzer.data.loader import append_record
     from pmi_analyzer.scraper.archive_scraper import ArchiveScraper
     from pmi_analyzer.scraper.batch_downloader import BatchDownloader
     from pmi_analyzer.scraper.batch_parser import BatchParser
-    from pmi_analyzer.data.loader import append_record
 
     csv = Path(csv_path)
     pdfs = Path(pdf_dir)
@@ -144,11 +146,11 @@ def analyse(
     labor: bool,
 ):
     """Analyze Shamkh (PMI) data."""
+    from pmi_analyzer.data.loader import append_record, load_historical
     from pmi_analyzer.downloader.iccima_downloader import ICCIMADownloader
-    from pmi_analyzer.parser.pdf_parser import PDFParser
     from pmi_analyzer.metrics.calculator import MetricsCalculator
+    from pmi_analyzer.parser.pdf_parser import PDFParser
     from pmi_analyzer.plotter.plotly_plotter import PlotlyPlotter
-    from pmi_analyzer.data.loader import load_historical, append_record
 
     if not download and not pdf:
         raise click.UsageError(_("Either --download or --pdf required"))

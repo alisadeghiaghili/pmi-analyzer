@@ -4,8 +4,8 @@ import logging
 from pathlib import Path
 from typing import List, Optional, Tuple
 
-from pmi_analyzer.scraper.archive_scraper import ReportLink
 from pmi_analyzer.parser.pdf_parser import PDFParser
+from pmi_analyzer.scraper.archive_scraper import ReportLink
 from pmi_analyzer.types import ShamkhMetrics
 
 logger = logging.getLogger(__name__)

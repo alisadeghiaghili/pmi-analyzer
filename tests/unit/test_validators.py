@@ -1,8 +1,9 @@
 """TDD tests for pmi_analyzer/metrics/validators.py."""
 
 import pytest
-from pmi_analyzer.types import ShamkhMetrics
+
 from pmi_analyzer.metrics.validators import MetricsValidator
+from pmi_analyzer.types import ShamkhMetrics
 
 
 def full(**overrides):

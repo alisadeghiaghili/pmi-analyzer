@@ -1,17 +1,18 @@
 """Unit tests for PDF parser."""
 
-import pytest
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import pytest
+
 from pmi_analyzer.parser.pdf_parser import (
     PDFParser,
-    _to_float,
     _best_match,
-    _normalize_label,
-    _label_in_text,
     _is_aggregate_row,
+    _label_in_text,
+    _normalize_label,
+    _to_float,
 )
-
 
 # ------------------------------------------------------------------ #
 #  _to_float
@@ -253,10 +254,18 @@ class TestDetectMonth:
 
     def test_all_months(self):
         months = {
-            "فروردین": "01", "اردیبهشت": "02", "خرداد": "03",
-            "تیر": "04", "مرداد": "05", "شهریور": "06",
-            "مهر": "07", "آبان": "08", "آذر": "09",
-            "دی": "10", "بهمن": "11", "اسفند": "12",
+            "فروردین": "01",
+            "اردیبهشت": "02",
+            "خرداد": "03",
+            "تیر": "04",
+            "مرداد": "05",
+            "شهریور": "06",
+            "مهر": "07",
+            "آبان": "08",
+            "آذر": "09",
+            "دی": "10",
+            "بهمن": "11",
+            "اسفند": "12",
         }
         for name, num in months.items():
             result = self.parser._detect_month(f"{name} ۱۴۰۵")
@@ -411,9 +420,7 @@ class TestParseTextFallback:
 
     def test_multiple_indicators(self):
         text = (
-            "میزان تولید: 48.2\n"
-            "سفارشات جدید مشتریان: 42.1\n"
-            "میزان فروش کالاها یا خدمات: 47.5"
+            "میزان تولید: 48.2\n" "سفارشات جدید مشتریان: 42.1\n" "میزان فروش کالاها یا خدمات: 47.5"
         )
         fields = self.parser._parse_text_fallback(text)
         assert fields.get("production") == 48.2
@@ -495,9 +502,7 @@ class TestParse:
         """When tables return nothing, should fall back to text."""
         mock_page = MagicMock()
         mock_page.extract_text.return_value = (
-            "گزارش شاخص مدیران خرید اردیبهشت ۱۴۰۵\n"
-            "شاخص کل: 47.3\n"
-            "تولید: 49.1\n"
+            "گزارش شاخص مدیران خرید اردیبهشت ۱۴۰۵\n" "شاخص کل: 47.3\n" "تولید: 49.1\n"
         )
         mock_page.extract_tables.return_value = []
 

@@ -1,6 +1,7 @@
 """Unit tests for ArchiveScraper (no network calls)."""
 
 from bs4 import BeautifulSoup
+
 from pmi_analyzer.scraper.archive_scraper import ArchiveScraper
 
 

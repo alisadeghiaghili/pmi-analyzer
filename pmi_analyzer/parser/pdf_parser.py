@@ -9,10 +9,12 @@ Multi-strategy extraction for ICCIMA PMI PDFs:
 
 import re
 from pathlib import Path
-from typing import List, Optional, Dict, Tuple
+from typing import Dict, List, Optional, Tuple, Union
+
 import pdfplumber
-from pmi_analyzer.types import ShamkhMetrics
+
 from pmi_analyzer.exceptions import ParseError
+from pmi_analyzer.types import ShamkhMetrics
 
 # ---------------------------------------------------------------------------
 # Label -> ShamkhMetrics field mapping
@@ -105,32 +107,32 @@ _ROW_LABEL_MAP: Dict[str, str] = {
 
 # Industry-specific keywords that disqualify a row from being the aggregate/total
 _INDUSTRY_KEYWORDS = {
-    "سایر صنایع",      # other industries
-    "صنعت خودرو",      # automotive industry
-    "صنعت غذا",        # food industry
-    "صنعت دارو",       # pharmaceutical industry
-    "صنعت نفت",        # oil industry
-    "صنعت فلزات",      # metals industry
-    "صنعت سیمان",      # cement industry
-    "صنعت شیمیایی",    # chemical industry
-    "صنعت منسوجات",    # textile industry
-    "صنعت کاغذ",       # paper industry
-    "صنعت لاستیک",     # rubber industry
+    "سایر صنایع",  # other industries
+    "صنعت خودرو",  # automotive industry
+    "صنعت غذا",  # food industry
+    "صنعت دارو",  # pharmaceutical industry
+    "صنعت نفت",  # oil industry
+    "صنعت فلزات",  # metals industry
+    "صنعت سیمان",  # cement industry
+    "صنعت شیمیایی",  # chemical industry
+    "صنعت منسوجات",  # textile industry
+    "صنعت کاغذ",  # paper industry
+    "صنعت لاستیک",  # rubber industry
     "صنعت الکترونیک",  # electronics industry
-    "خودرو",           # automotive
-    "فلزات",           # metals
-    "سیمان",           # cement
-    "شیمیایی",         # chemical
-    "منسوجات",         # textile
+    "خودرو",  # automotive
+    "فلزات",  # metals
+    "سیمان",  # cement
+    "شیمیایی",  # chemical
+    "منسوجات",  # textile
 }
 
 # Aggregate/total qualifiers that indicate the main PMI row
 _AGGREGATE_QUALIFIERS = {
-    "کل",              # total/all
-    "اقتصاد",          # economy
-    "مجموع",           # aggregate
-    "جمع",             # sum/total
-    "عمومی",           # general
+    "کل",  # total/all
+    "اقتصاد",  # economy
+    "مجموع",  # aggregate
+    "جمع",  # sum/total
+    "عمومی",  # general
 }
 
 # Persian month names -> zero-padded month number
@@ -458,7 +460,7 @@ class PDFParser:
         self,
         matches: List[Tuple[int, Optional[float], str]],
         table: list,
-    ) -> Optional[Optional[float]]:
+    ) -> Union[None, float]:
         """Select the aggregate row value from multiple matches.
 
         Prefers rows without industry-specific qualifiers in their label.
@@ -466,9 +468,7 @@ class PDFParser:
         """
         # Filter to aggregate rows only
         aggregate_matches = [
-            (row_idx, value, label)
-            for row_idx, value, label in matches
-            if _is_aggregate_row(label)
+            (row_idx, value, label) for row_idx, value, label in matches if _is_aggregate_row(label)
         ]
 
         if aggregate_matches:
@@ -595,15 +595,11 @@ class PDFParser:
             if field in fields:
                 continue
             # Try decimal first (e.g. 45.9)
-            pattern = re.compile(
-                rf"{re.escape(keyword)}{_GAP}{{0,60}}(\d{{1,3}}\.\d{{1,2}})"
-            )
+            pattern = re.compile(rf"{re.escape(keyword)}{_GAP}{{0,60}}(\d{{1,3}}\.\d{{1,2}})")
             match = pattern.search(text)
             if not match:
                 # Fall back to integer (e.g. 45) but not part of a year
-                pattern = re.compile(
-                    rf"{re.escape(keyword)}{_GAP}{{0,60}}(\d{{1,2}})(?!\d)"
-                )
+                pattern = re.compile(rf"{re.escape(keyword)}{_GAP}{{0,60}}(\d{{1,2}})(?!\d)")
                 match = pattern.search(text)
             if match:
                 val = _to_float(match.group(1))

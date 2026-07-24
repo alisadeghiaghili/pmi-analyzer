@@ -3,9 +3,9 @@
 Phase 1: Discover all PDF links from otaghiranonline.ir and iccima.ir archives.
 """
 
+import logging
 import re
 import time
-import logging
 from dataclasses import dataclass
 from typing import List, Optional
 from urllib.parse import urljoin, urlparse

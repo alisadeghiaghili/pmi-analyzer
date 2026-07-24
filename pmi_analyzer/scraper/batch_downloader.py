@@ -1,7 +1,7 @@
 """Phase 2a - Batch download all discovered PDFs."""
 
-import time
 import logging
+import time
 from pathlib import Path
 from typing import List, Tuple
 
@@ -108,8 +108,7 @@ class BatchDownloader:
             resp = self.session.get(url, timeout=self.timeout, stream=True)
             resp.raise_for_status()
             with open(dest, "wb") as f:
-                for chunk in resp.iter_content(chunk_size=8192):
-                    f.write(chunk)
+                f.writelines(resp.iter_content(chunk_size=8192))
             return dest
         except requests.RequestException as e:
             logger.warning(f"  Download error ({url}): {e}")

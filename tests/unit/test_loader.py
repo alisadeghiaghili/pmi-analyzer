@@ -1,10 +1,11 @@
 """Unit tests for data loader."""
 
 import csv
-import pytest
 from pathlib import Path
 
-from pmi_analyzer.data.loader import load_historical, append_record
+import pytest
+
+from pmi_analyzer.data.loader import append_record, load_historical
 from pmi_analyzer.types import ShamkhMetrics
 
 

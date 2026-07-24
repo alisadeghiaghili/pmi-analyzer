@@ -1,9 +1,10 @@
 """Integration tests: full ShamkhMetrics -> MetricsCalculator pipeline."""
 
-import pytest
 import pandas as pd
-from pmi_analyzer.types import ShamkhMetrics
+import pytest
+
 from pmi_analyzer.metrics.calculator import MetricsCalculator
+from pmi_analyzer.types import ShamkhMetrics
 
 
 def make_declining_series(n: int = 6) -> list:

@@ -5,7 +5,8 @@ Write them first; implement types.py to make them pass.
 """
 
 import pytest
-from pmi_analyzer.types import ShamkhMetrics, PlotType, DataSource, PlotConfig, DownloadConfig
+
+from pmi_analyzer.types import DataSource, DownloadConfig, PlotConfig, PlotType, ShamkhMetrics
 
 # ------------------------------------------------------------------ #
 #  ShamkhMetrics construction

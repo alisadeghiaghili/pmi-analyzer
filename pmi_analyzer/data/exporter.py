@@ -15,10 +15,9 @@ Typical usage::
     export_to_sql(results, Path("output/data.sql"))
 """
 
-import csv
 import json
 from pathlib import Path
-from typing import List, Optional
+from typing import List
 
 import pandas as pd
 

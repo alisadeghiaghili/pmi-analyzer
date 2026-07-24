@@ -1,9 +1,9 @@
 """TDD tests for pmi_analyzer/exceptions.py."""
 
 from pmi_analyzer.exceptions import (
-    PMIAnalyzerError,
-    PDFParseError,
     DownloadError,
+    PDFParseError,
+    PMIAnalyzerError,
     ValidationError,
 )
 

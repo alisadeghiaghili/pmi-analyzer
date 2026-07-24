@@ -1,7 +1,8 @@
 """Tests for i18n module."""
 
 import pytest
-from pmi_analyzer.i18n import _, set_locale, get_locale
+
+from pmi_analyzer.i18n import _, get_locale, set_locale
 
 
 def test_default_locale_is_fa():

@@ -16,8 +16,10 @@ Typical usage::
     print(df.columns.tolist())
 """
 
-import pandas as pd
 from typing import List
+
+import pandas as pd
+
 from pmi_analyzer.types import ShamkhMetrics
 
 

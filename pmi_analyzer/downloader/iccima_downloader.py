@@ -24,8 +24,8 @@ from urllib.parse import urljoin
 import requests
 from bs4 import BeautifulSoup
 
-from pmi_analyzer.types import DownloadConfig
 from pmi_analyzer.exceptions import DownloadError
+from pmi_analyzer.types import DownloadConfig
 
 logger = logging.getLogger(__name__)
 
@@ -443,8 +443,7 @@ class ICCIMADownloader:
         output_path = self.config.output_dir / url_filename
 
         with open(output_path, "wb") as fh:
-            for chunk in resp.iter_content(chunk_size=8192):
-                fh.write(chunk)
+            fh.writelines(resp.iter_content(chunk_size=8192))
 
         logger.info(f"Saved: {output_path}")
         return output_path

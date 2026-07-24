@@ -1,18 +1,14 @@
 """Tests for data exporter (CSV, SQL, JSON, Excel)."""
 
-import pytest
-from pathlib import Path
-
-from pmi_analyzer.types import ShamkhMetrics
 from pmi_analyzer.data.exporter import (
-    metrics_to_dataframe,
     export_to_csv,
-    export_to_sql,
-    export_to_json,
     export_to_excel,
+    export_to_json,
+    export_to_sql,
     merge_with_historical,
+    metrics_to_dataframe,
 )
-
+from pmi_analyzer.types import ShamkhMetrics
 
 # ------------------------------------------------------------------ #
 #  metrics_to_dataframe
@@ -46,7 +42,9 @@ class TestMetricsToDataframe:
     def test_none_values_preserved(self):
         metrics = [ShamkhMetrics(month="1405-03", pmi_total=45.9)]
         df = metrics_to_dataframe(metrics)
-        assert df.iloc[0]["production"] is None or df.iloc[0]["production"] != df.iloc[0]["production"]  # NaN check
+        assert (
+            df.iloc[0]["production"] is None or df.iloc[0]["production"] != df.iloc[0]["production"]
+        )  # NaN check
 
 
 # ------------------------------------------------------------------ #
@@ -202,6 +200,7 @@ class TestExportToJson:
 
     def test_json_is_valid_array(self, tmp_path):
         import json
+
         metrics = [
             ShamkhMetrics(month="1405-01", pmi_total=47.0),
             ShamkhMetrics(month="1405-02", pmi_total=46.5),
@@ -214,6 +213,7 @@ class TestExportToJson:
 
     def test_json_preserves_none_as_null(self, tmp_path):
         import json
+
         metrics = [ShamkhMetrics(month="1405-03", pmi_total=45.9)]
         output = tmp_path / "test.json"
         export_to_json(metrics, output)
@@ -243,6 +243,7 @@ class TestExportToExcel:
 
     def test_excel_has_correct_sheet_name(self, tmp_path):
         import openpyxl
+
         metrics = [ShamkhMetrics(month="1405-03", pmi_total=45.9)]
         output = tmp_path / "test.xlsx"
         export_to_excel(metrics, output, sheet_name="My Data")
@@ -296,6 +297,7 @@ class TestEdgeCases:
     def test_json_unicode_preservation(self, tmp_path):
         """JSON should preserve Persian/Arabic characters."""
         import json
+
         metrics = [ShamkhMetrics(month="خرداد-۱۴۰۵", pmi_total=45.9)]
         output = tmp_path / "unicode.json"
         export_to_json(metrics, output)
@@ -305,8 +307,7 @@ class TestEdgeCases:
     def test_large_dataset(self, tmp_path):
         """Test with 100 records."""
         metrics = [
-            ShamkhMetrics(month=f"1405-{i:02d}", pmi_total=40.0 + i * 0.1)
-            for i in range(1, 13)
+            ShamkhMetrics(month=f"1405-{i:02d}", pmi_total=40.0 + i * 0.1) for i in range(1, 13)
         ] * 8  # 96 records
         output = tmp_path / "large.csv"
         export_to_csv(metrics, output)
@@ -371,6 +372,7 @@ class TestEdgeCases:
     def test_excel_multiple_rows(self, tmp_path):
         """Excel with multiple rows."""
         import openpyxl
+
         metrics = [
             ShamkhMetrics(month="1405-01", pmi_total=47.0),
             ShamkhMetrics(month="1405-02", pmi_total=46.5),

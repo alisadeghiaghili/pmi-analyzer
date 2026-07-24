@@ -3,7 +3,6 @@
 from pathlib import Path
 from unittest.mock import patch
 
-
 from pmi_analyzer.scraper.archive_scraper import ReportLink
 from pmi_analyzer.types import ShamkhMetrics
 from pmi_analyzer.updater.monthly_updater import MonthlyUpdater, UpdateResult
