@@ -16,15 +16,15 @@ Typical usage::
     report.generate(results[0], Path("output/report.html"))
 """
 
+from pmi_analyzer.reporter.alerts import AlertReport
 from pmi_analyzer.reporter.base import BaseReport, ReportConfig
 from pmi_analyzer.reporter.monthly import MonthlyReport
 from pmi_analyzer.reporter.trend import TrendReport
-from pmi_analyzer.reporter.alerts import AlertReport
 
 __all__ = [
-    "BaseReport",
-    "ReportConfig",
-    "MonthlyReport",
-    "TrendReport",
     "AlertReport",
+    "BaseReport",
+    "MonthlyReport",
+    "ReportConfig",
+    "TrendReport",
 ]

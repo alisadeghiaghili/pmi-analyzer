@@ -309,7 +309,7 @@ def report(
         pmi-analyzer report --type alerts --download
     """
     from pmi_analyzer.data.loader import load_historical
-    from pmi_analyzer.reporter import ReportConfig, MonthlyReport, TrendReport, AlertReport
+    from pmi_analyzer.reporter import AlertReport, MonthlyReport, ReportConfig, TrendReport
 
     output_dir = Path(output)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -342,7 +342,9 @@ def report(
             # Use historical CSV
             hist_csv = Path(historical_csv)
             if not hist_csv.exists():
-                click.echo("Error: No data source provided. Use --pdf, --download, or --historical-csv")
+                click.echo(
+                    "Error: No data source provided. Use --pdf, --download, or --historical-csv"
+                )
                 raise SystemExit(1)
             metrics_list = load_historical(hist_csv)
             if month:
@@ -369,7 +371,9 @@ def report(
         metrics_list = load_historical(hist_csv)
         if month:
             # Filter to last N months
-            idx = next((i for i, m in enumerate(metrics_list) if m.month == month), len(metrics_list))
+            idx = next(
+                (i for i, m in enumerate(metrics_list) if m.month == month), len(metrics_list)
+            )
             metrics_list = metrics_list[max(0, idx - months + 1) : idx + 1]
         else:
             metrics_list = metrics_list[-months:]

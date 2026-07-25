@@ -7,9 +7,7 @@ with support for multiple languages and export formats.
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
-
-import pandas as pd
+from typing import Optional
 
 from pmi_analyzer.types import ShamkhMetrics
 
@@ -69,7 +67,6 @@ class BaseReport(ABC):
         Returns:
             Path to the generated report file.
         """
-        pass
 
     def _get_text(self, key: str, default: str = "") -> str:
         """Get translated text based on configured language.

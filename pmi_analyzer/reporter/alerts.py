@@ -8,7 +8,7 @@ from typing import List, Optional
 
 import pandas as pd
 
-from pmi_analyzer.reporter.base import BaseReport, ReportConfig
+from pmi_analyzer.reporter.base import BaseReport
 from pmi_analyzer.types import ShamkhMetrics
 
 
@@ -51,10 +51,12 @@ class AlertReport(BaseReport):
         """Convert metrics list to DataFrame."""
         rows = []
         for m in metrics_list:
-            rows.append({
-                "month": m.month,
-                "pmi_total": m.pmi_total,
-            })
+            rows.append(
+                {
+                    "month": m.month,
+                    "pmi_total": m.pmi_total,
+                }
+            )
         return pd.DataFrame(rows)
 
     def _analyze_alerts(self, df: pd.DataFrame) -> List[dict]:
@@ -80,13 +82,15 @@ class AlertReport(BaseReport):
                 consecutive_below = 0
 
             if consecutive_below >= 3:
-                alerts.append({
-                    "type": "recession",
-                    "severity": "high",
-                    "month": row["month"],
-                    "value": row["pmi_total"],
-                    "message": self._get_alert_message("recession", consecutive_below),
-                })
+                alerts.append(
+                    {
+                        "type": "recession",
+                        "severity": "high",
+                        "month": row["month"],
+                        "value": row["pmi_total"],
+                        "message": self._get_alert_message("recession", consecutive_below),
+                    }
+                )
 
         # Check for consecutive months above 50 (expansion)
         consecutive_above = 0
@@ -97,13 +101,15 @@ class AlertReport(BaseReport):
                 consecutive_above = 0
 
             if consecutive_above >= 3:
-                alerts.append({
-                    "type": "expansion",
-                    "severity": "positive",
-                    "month": row["month"],
-                    "value": row["pmi_total"],
-                    "message": self._get_alert_message("expansion", consecutive_above),
-                })
+                alerts.append(
+                    {
+                        "type": "expansion",
+                        "severity": "positive",
+                        "month": row["month"],
+                        "value": row["pmi_total"],
+                        "message": self._get_alert_message("expansion", consecutive_above),
+                    }
+                )
 
         # Check for sharp decline
         if len(df) > 1 and "pmi_total" in df.columns:
@@ -111,13 +117,15 @@ class AlertReport(BaseReport):
                 prev = df.iloc[i - 1]["pmi_total"]
                 curr = df.iloc[i]["pmi_total"]
                 if prev and curr and (prev - curr) > 5:
-                    alerts.append({
-                        "type": "sharp_decline",
-                        "severity": "high",
-                        "month": df.iloc[i]["month"],
-                        "value": curr,
-                        "message": self._get_alert_message("sharp_decline", prev - curr),
-                    })
+                    alerts.append(
+                        {
+                            "type": "sharp_decline",
+                            "severity": "high",
+                            "month": df.iloc[i]["month"],
+                            "value": curr,
+                            "message": self._get_alert_message("sharp_decline", prev - curr),
+                        }
+                    )
 
         return alerts
 
@@ -160,7 +168,9 @@ class AlertReport(BaseReport):
             """
 
         if not alerts_html:
-            alerts_html = f"<p>{'هشداری وجود ندارد' if self.config.language == 'fa' else 'No alerts'}</p>"
+            alerts_html = (
+                f"<p>{'هشداری وجود ندارد' if self.config.language == 'fa' else 'No alerts'}</p>"
+            )
 
         # Chart data
         months = df["month"].tolist() if "month" in df.columns else []

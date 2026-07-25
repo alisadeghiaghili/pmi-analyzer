@@ -8,7 +8,7 @@ from typing import List, Optional
 
 import pandas as pd
 
-from pmi_analyzer.reporter.base import BaseReport, ReportConfig
+from pmi_analyzer.reporter.base import BaseReport
 from pmi_analyzer.types import ShamkhMetrics
 
 
@@ -58,15 +58,17 @@ class TrendReport(BaseReport):
         """
         rows = []
         for m in metrics_list:
-            rows.append({
-                "month": m.month,
-                "pmi_total": m.pmi_total,
-                "production": m.production,
-                "new_orders": m.new_orders,
-                "sales": m.sales,
-                "employment": m.employment,
-                "exports": m.exports,
-            })
+            rows.append(
+                {
+                    "month": m.month,
+                    "pmi_total": m.pmi_total,
+                    "production": m.production,
+                    "new_orders": m.new_orders,
+                    "sales": m.sales,
+                    "employment": m.employment,
+                    "exports": m.exports,
+                }
+            )
         return pd.DataFrame(rows)
 
     def _build_html(self, df: pd.DataFrame, metrics_list: List[ShamkhMetrics]) -> str:

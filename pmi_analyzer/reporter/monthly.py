@@ -7,9 +7,7 @@ and interpretation.
 from pathlib import Path
 from typing import Optional
 
-import pandas as pd
-
-from pmi_analyzer.reporter.base import BaseReport, ReportConfig
+from pmi_analyzer.reporter.base import BaseReport
 from pmi_analyzer.types import ShamkhMetrics
 
 
@@ -240,7 +238,9 @@ class MonthlyReport(BaseReport):
                 return f"شاخص مدیران خرید در ماه {metrics.month} با مقدار {pmi:.1f} نشان‌دهنده رکود شدید است. توجه فوری لازم است."
         else:
             if pmi > 55:
-                return f"The PMI in {metrics.month} at {pmi:.1f} indicates strong economic expansion."
+                return (
+                    f"The PMI in {metrics.month} at {pmi:.1f} indicates strong economic expansion."
+                )
             elif pmi > 50:
                 return f"The PMI in {metrics.month} at {pmi:.1f} indicates moderate expansion."
             elif pmi > 45:

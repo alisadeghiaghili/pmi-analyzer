@@ -1,11 +1,7 @@
 """Tests for reporter module."""
 
-import pytest
-from pathlib import Path
-
+from pmi_analyzer.reporter import AlertReport, MonthlyReport, ReportConfig, TrendReport
 from pmi_analyzer.types import ShamkhMetrics
-from pmi_analyzer.reporter import ReportConfig, MonthlyReport, TrendReport, AlertReport
-
 
 # ------------------------------------------------------------------ #
 #  ReportConfig
