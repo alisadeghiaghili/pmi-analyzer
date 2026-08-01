@@ -12,12 +12,11 @@ Dependencies (optional — install with `pip install pmi-analyzer[report]`)::
 
 import importlib
 import importlib.util
-import io
 import logging
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
-from pmi_analyzer.reporter.base import BaseReport, ReportConfig
+from pmi_analyzer.reporter.base import BaseReport
 from pmi_analyzer.types import ShamkhMetrics
 
 logger = logging.getLogger(__name__)
@@ -86,10 +85,7 @@ class DocxExporter(BaseReport):
             return self._write_text_fallback(metrics, output_path.with_suffix(".txt"))
 
         docx = importlib.import_module("docx")
-        from docx.enum.text import WD_ALIGN_PARAGRAPH  # type: ignore
-        from docx.oxml.ns import qn  # type: ignore
-        from docx.oxml import OxmlElement  # type: ignore
-        from docx.shared import Pt, RGBColor  # type: ignore
+        from docx.shared import RGBColor  # type: ignore
 
         doc = docx.Document()
 
@@ -172,7 +168,9 @@ class DocxExporter(BaseReport):
         for field in _INDICATORS:
             val = getattr(metrics, field, None)
             if val is not None:
-                lines.append(f"{self._get_indicator_name(field)}: {val:.1f} ({self._get_status(val)})")
+                lines.append(
+                    f"{self._get_indicator_name(field)}: {val:.1f} ({self._get_status(val)})"
+                )
         path.write_text("\n".join(lines), encoding="utf-8")
         return path
 
@@ -180,8 +178,8 @@ class DocxExporter(BaseReport):
     def _set_rtl(paragraph) -> None:  # type: ignore[type-arg]
         """Set RTL text direction on a python-docx paragraph."""
         try:
-            from docx.oxml.ns import qn  # type: ignore
             from docx.oxml import OxmlElement  # type: ignore
+            from docx.oxml.ns import qn  # type: ignore
 
             pPr = paragraph._p.get_or_add_pPr()
             bidi = OxmlElement("w:bidi")

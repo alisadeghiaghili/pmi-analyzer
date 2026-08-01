@@ -5,12 +5,12 @@ an interactive HTML file. Supports Persian RTL and dark/light mode.
 """
 
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional
 
-from pmi_analyzer.reporter.base import BaseReport, ReportConfig
+from pmi_analyzer.reporter.alerts import AlertReport
+from pmi_analyzer.reporter.base import ReportConfig
 from pmi_analyzer.reporter.monthly import MonthlyReport
 from pmi_analyzer.reporter.trend import TrendReport
-from pmi_analyzer.reporter.alerts import AlertReport
 from pmi_analyzer.types import ShamkhMetrics
 
 
@@ -94,7 +94,9 @@ class HtmlExporter:
             Path to the written HTML file.
         """
         report = AlertReport(self.config)
-        path = report.generate(metrics_list[-1] if metrics_list else ShamkhMetrics(month="unknown"), output_path)
+        path = report.generate(
+            metrics_list[-1] if metrics_list else ShamkhMetrics(month="unknown"), output_path
+        )
         return self._inject_dark_mode_toggle(path)
 
     # ------------------------------------------------------------------

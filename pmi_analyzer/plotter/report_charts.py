@@ -10,11 +10,13 @@ All functions return a Plotly Figure object that can be saved as
 HTML (``fig.write_html``) or PNG (``fig.write_image``, requires kaleido).
 """
 
-from typing import Dict, List, Optional, Sequence
+from collections.abc import Sequence
+from typing import Dict, List, Optional
 
 try:
-    import plotly.graph_objects as go
     import plotly.express as px
+    import plotly.graph_objects as go
+
     _PLOTLY_AVAILABLE = True
 except ImportError:
     _PLOTLY_AVAILABLE = False
@@ -72,8 +74,7 @@ _LABELS_FA: List[str] = [
 def _require_plotly() -> None:
     if not _PLOTLY_AVAILABLE:
         raise ImportError(
-            "plotly is required for report_charts. "
-            "Install with: pip install plotly"
+            "plotly is required for report_charts. " "Install with: pip install plotly"
         )
 
 
@@ -97,6 +98,7 @@ def _color(value: float) -> str:
 # ---------------------------------------------------------------------------
 # Gauge chart
 # ---------------------------------------------------------------------------
+
 
 def gauge_chart(
     value: float,
@@ -123,25 +125,27 @@ def gauge_chart(
     _require_plotly()
     bar_color = _color(value)
 
-    fig = go.Figure(go.Indicator(
-        mode="gauge+number+delta",
-        value=value,
-        title={"text": title},
-        delta={"reference": 50, "relative": False},
-        gauge={
-            "axis": {"range": [0, 100], "tickwidth": 1},
-            "bar": {"color": bar_color},
-            "steps": [
-                {"range": [0, 50], "color": "#fde0dd"},
-                {"range": [50, 100], "color": "#e5f5e0"},
-            ],
-            "threshold": {
-                "line": {"color": "black", "width": 3},
-                "thickness": 0.75,
-                "value": 50,
+    fig = go.Figure(
+        go.Indicator(
+            mode="gauge+number+delta",
+            value=value,
+            title={"text": title},
+            delta={"reference": 50, "relative": False},
+            gauge={
+                "axis": {"range": [0, 100], "tickwidth": 1},
+                "bar": {"color": bar_color},
+                "steps": [
+                    {"range": [0, 50], "color": "#fde0dd"},
+                    {"range": [50, 100], "color": "#e5f5e0"},
+                ],
+                "threshold": {
+                    "line": {"color": "black", "width": 3},
+                    "thickness": 0.75,
+                    "value": 50,
+                },
             },
-        },
-    ))
+        )
+    )
     fig.update_layout(height=height, margin=dict(t=40, b=10, l=20, r=20))
     return fig
 
@@ -149,6 +153,7 @@ def gauge_chart(
 # ---------------------------------------------------------------------------
 # Heatmap
 # ---------------------------------------------------------------------------
+
 
 def heatmap_chart(
     industry_data: Dict[str, ShamkhMetrics],
@@ -182,17 +187,19 @@ def heatmap_chart(
         z.append(row)
         text.append([f"{v:.1f}" for v in row])
 
-    fig = go.Figure(go.Heatmap(
-        z=z,
-        x=labels,
-        y=industries,
-        text=text,
-        texttemplate="%{text}",
-        colorscale=[[0, "#e74c3c"], [0.5, "#f39c12"], [1, "#27ae60"]],
-        zmin=0,
-        zmax=100,
-        showscale=True,
-    ))
+    fig = go.Figure(
+        go.Heatmap(
+            z=z,
+            x=labels,
+            y=industries,
+            text=text,
+            texttemplate="%{text}",
+            colorscale=[[0, "#e74c3c"], [0.5, "#f39c12"], [1, "#27ae60"]],
+            zmin=0,
+            zmax=100,
+            showscale=True,
+        )
+    )
     fig.update_layout(
         height=height,
         xaxis_tickangle=-30,
@@ -204,6 +211,7 @@ def heatmap_chart(
 # ---------------------------------------------------------------------------
 # Radar chart
 # ---------------------------------------------------------------------------
+
 
 def radar_chart(
     industry_data: Dict[str, ShamkhMetrics],
@@ -233,13 +241,15 @@ def radar_chart(
     for ind_name, m in industry_data.items():
         vals = [getattr(m, f, None) or 0.0 for f in _INDICATORS]
         closed_vals = vals + [vals[0]]
-        traces.append(go.Scatterpolar(
-            r=closed_vals,
-            theta=closed_labels,
-            fill="toself",
-            name=ind_name,
-            opacity=0.65,
-        ))
+        traces.append(
+            go.Scatterpolar(
+                r=closed_vals,
+                theta=closed_labels,
+                fill="toself",
+                name=ind_name,
+                opacity=0.65,
+            )
+        )
 
     fig = go.Figure(traces)
     fig.update_layout(
@@ -254,6 +264,7 @@ def radar_chart(
 # ---------------------------------------------------------------------------
 # Sparkline
 # ---------------------------------------------------------------------------
+
 
 def sparkline_chart(
     values: Sequence[float],
@@ -284,14 +295,16 @@ def sparkline_chart(
     colors = [_color(v) for v in values]
 
     fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=x,
-        y=list(values),
-        mode="lines+markers",
-        name=indicator_name,
-        line=dict(width=2, color="#3498db"),
-        marker=dict(color=colors, size=6),
-    ))
+    fig.add_trace(
+        go.Scatter(
+            x=x,
+            y=list(values),
+            mode="lines+markers",
+            name=indicator_name,
+            line=dict(width=2, color="#3498db"),
+            marker=dict(color=colors, size=6),
+        )
+    )
     # 50-line reference
     fig.add_hline(y=50, line_dash="dot", line_color="gray", opacity=0.5)
 

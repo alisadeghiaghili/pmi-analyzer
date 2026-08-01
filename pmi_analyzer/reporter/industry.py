@@ -5,9 +5,9 @@ and radar chart for multi-indicator analysis.
 """
 
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
-from pmi_analyzer.reporter.base import BaseReport, ReportConfig
+from pmi_analyzer.reporter.base import BaseReport
 from pmi_analyzer.types import ShamkhMetrics
 
 # All 11 sub-indicator field names
@@ -179,6 +179,7 @@ class IndustryReport(BaseReport):
             z_rows.append(row)
 
         import json
+
         z_json = json.dumps(z_rows)
         x_json = json.dumps(indicator_labels)
         y_json = json.dumps(industries)
@@ -209,18 +210,21 @@ Plotly.newPlot('heatmap', [{{
         closed_labels = indicator_labels + [indicator_labels[0]]
 
         import json
+
         traces = []
         for ind_name, m in industry_data.items():
             vals = [getattr(m, f, None) or 0 for f in indicators]
             vals_closed = vals + [vals[0]]
-            traces.append({
-                "type": "scatterpolar",
-                "r": vals_closed,
-                "theta": closed_labels,
-                "fill": "toself",
-                "name": ind_name,
-                "opacity": 0.6,
-            })
+            traces.append(
+                {
+                    "type": "scatterpolar",
+                    "r": vals_closed,
+                    "theta": closed_labels,
+                    "fill": "toself",
+                    "name": ind_name,
+                    "opacity": 0.6,
+                }
+            )
 
         traces_json = json.dumps(traces)
         return f"""<script>
@@ -262,7 +266,7 @@ Plotly.newPlot('radar', {traces_json}, {{
                 css = "expansion" if pmi > 50 else ("contraction" if pmi < 50 else "neutral")
                 status = self._get_status(pmi)
                 rows += (
-                    f'<tr><td>{rank}</td><td>{ind_name}</td>'
+                    f"<tr><td>{rank}</td><td>{ind_name}</td>"
                     f'<td class="{css}">{pmi:.1f}</td>'
                     f'<td class="{css}">{status}</td></tr>\n'
                 )
