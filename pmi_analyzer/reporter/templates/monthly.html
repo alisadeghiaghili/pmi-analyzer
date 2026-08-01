@@ -1,0 +1,87 @@
+{# Jinja2 template for monthly PMI report #}
+<!DOCTYPE html>
+<html {% if lang == 'fa' %}dir="rtl" lang="fa"{% else %}lang="en"{% endif %}>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title }} - {{ month }}</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <style>
+    body {
+      font-family: Tahoma, Arial, sans-serif;
+      margin: 20px;
+      background: #f5f5f5;
+      {% if lang == 'fa' %}direction: rtl; text-align: right;{% endif %}
+    }
+    .container {
+      max-width: 1100px; margin: 0 auto;
+      background: white; padding: 30px;
+      border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,.1);
+    }
+    .header { text-align: center; border-bottom: 2px solid #3498db; padding-bottom: 20px; margin-bottom: 30px; }
+    .status-box {
+      background: {{ status_color }}; color: white;
+      padding: 20px; border-radius: 10px; text-align: center; margin: 20px 0;
+    }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    th, td { padding: 12px; border-bottom: 1px solid #ddd; {% if lang == 'fa' %}text-align: right;{% else %}text-align: left;{% endif %} }
+    th { background: #3498db; color: white; }
+    tr:hover { background: #f5f5f5; }
+    .expansion { color: #27ae60; font-weight: bold; }
+    .contraction { color: #e74c3c; font-weight: bold; }
+    .neutral { color: #f39c12; font-weight: bold; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>{{ title }}</h1>
+    <h2>{{ month_label }}: {{ month }}</h2>
+  </div>
+
+  <div class="status-box">
+    <h2>{{ status | upper }}</h2>
+    <p>{{ pmi_label }}: {{ pmi_value }}</p>
+  </div>
+
+  <div id="gauge" style="height:300px;"></div>
+
+  <h3>{{ summary_label }}</h3>
+  <table>
+    <thead>
+      <tr><th>{{ indicator_label }}</th><th>{{ value_label }}</th><th>{{ status_label }}</th></tr>
+    </thead>
+    <tbody>
+      {% for row in indicators %}
+      <tr>
+        <td>{{ row.name }}</td>
+        <td class="{{ row.css }}">{{ row.value }}</td>
+        <td class="{{ row.css }}">{{ row.status }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h3>{{ analysis_label }}</h3>
+  <p>{{ analysis_text }}</p>
+</div>
+
+<script>
+Plotly.newPlot('gauge', [{
+  type: 'indicator',
+  mode: 'gauge+number',
+  value: {{ pmi_value }},
+  title: { text: '{{ pmi_label }}' },
+  gauge: {
+    axis: { range: [0, 100] },
+    bar: { color: '{{ status_color }}' },
+    steps: [
+      { range: [0, 50], color: '#fde0dd' },
+      { range: [50, 100], color: '#e5f5e0' }
+    ],
+    threshold: { line: { color: 'red', width: 4 }, thickness: 0.75, value: 50 }
+  }
+}], { height: 300, margin: { t: 25, b: 25, l: 25, r: 25 } });
+</script>
+</body>
+</html>
