@@ -15,8 +15,8 @@ from pmi_analyzer.types import ShamkhMetrics
 __all__ = [
     "HEADLINE_RANGE",
     "INDICATOR_RANGE",
-    "is_plausible_indicator",
     "is_plausible_headline",
+    "is_plausible_indicator",
     "scrub_implausible",
 ]
 
@@ -90,9 +90,7 @@ def scrub_implausible(metrics: ShamkhMetrics) -> ShamkhMetrics:
     """
     data = {
         "month": metrics.month,
-        "pmi_total": metrics.pmi_total
-        if is_plausible_headline(metrics.pmi_total)
-        else None,
+        "pmi_total": metrics.pmi_total if is_plausible_headline(metrics.pmi_total) else None,
     }
     for field in _NUMERIC_FIELDS:
         val = getattr(metrics, field)
