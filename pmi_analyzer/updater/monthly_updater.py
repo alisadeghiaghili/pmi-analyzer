@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
+from pmi_analyzer.calendar import is_canonical_month, normalize_month_id
 from pmi_analyzer.data.loader import append_record, load_historical
 from pmi_analyzer.scraper.archive_scraper import ArchiveScraper, ReportLink
 from pmi_analyzer.scraper.batch_downloader import BatchDownloader
@@ -90,11 +91,10 @@ class MonthlyUpdater:
 
             # Step 2: check if we already have this month
             existing_months = self._existing_months()
-            if latest_link.period_label and self._month_exists(
-                latest_link.period_label, existing_months
-            ):
-                logger.info(f"[Updater] Already up to date ({latest_link.period_label}).")
-                return UpdateResult(status="already_up_to_date", month=latest_link.period_label)
+            label_month = normalize_month_id(latest_link.period_label)
+            if label_month and self._month_exists(label_month, existing_months):
+                logger.info(f"[Updater] Already up to date ({label_month}).")
+                return UpdateResult(status="already_up_to_date", month=label_month)
 
             # Step 3a: resolve PDF URL if missing
             if not latest_link.pdf_url:
@@ -121,7 +121,7 @@ class MonthlyUpdater:
 
             # Step 3c: parse
             logger.info(f"[Updater] Parsing: {pdf_path.name}")
-            metrics = self._parser.parse_single(pdf_path, month=latest_link.period_label)
+            metrics = self._parser.parse_single(pdf_path, month=label_month)
             if metrics is None:
                 return UpdateResult(
                     status="failed",
@@ -159,10 +159,25 @@ class MonthlyUpdater:
         except FileNotFoundError:
             return set()
 
-    def _month_exists(self, period_label: str, existing_months: set) -> bool:
-        """Check if period_label matches any existing month (fuzzy)."""
-        label_lower = period_label.strip().lower()
+    def _month_exists(self, month_id: str, existing_months: set) -> bool:
+        """Check whether a canonical month id is already stored.
+
+        Args:
+            month_id: Canonical ``YYYY-MM`` identifier.
+            existing_months: Month ids already present in the historical CSV.
+
+        Returns:
+            True on exact canonical match; Persian labels are normalised first.
+        """
+        candidate = normalize_month_id(month_id) if not is_canonical_month(month_id) else month_id
+        if not candidate:
+            return False
+        normalized_existing = set()
         for m in existing_months:
-            if label_lower in m.lower() or m.lower() in label_lower:
-                return True
-        return False
+            if is_canonical_month(m):
+                normalized_existing.add(m)
+            else:
+                alt = normalize_month_id(m)
+                if alt:
+                    normalized_existing.add(alt)
+        return candidate in normalized_existing
