@@ -100,10 +100,20 @@ def normalize_month_id(raw: Optional[str], *, default_year: Optional[int] = None
 
     year_m = re.search(_YEAR, text)
     year_in_text = year_m.group(1) if year_m else None
+    if not year_in_text:
+        # Filenames like "تیر405" store the 3-digit Jalali year tail.
+        short_m = re.search(r"(?<!\d)(\d{3})(?!\d)", text)
+        if short_m:
+            tail = int(short_m.group(1))
+            if 400 <= tail <= 430:
+                year_in_text = str(1000 + tail)
 
     found_num: Optional[str] = None
     for name, num in MONTH_NAME_TO_NUM.items():
         if _month_token_pattern(name).search(text):
+            found_num = num
+            break
+        if _month_token_pattern(name[::-1]).search(text):
             found_num = num
             break
 

@@ -41,6 +41,14 @@ class TestNormalizeMonthId:
         assert normalize_month_id(None) is None
         assert normalize_month_id("  ") is None
 
+    def test_reversed_month_name_from_rtl_dump(self):
+        # RTL dump of خرداد is دادرخ / دادرخ.
+        assert normalize_month_id("دادرخ 1405") == "1405-03"
+
+    def test_short_jalali_year_in_filename(self):
+        assert normalize_month_id("تیر405") == "1405-04"
+        assert normalize_month_id("شامخ-اردیبهشت-1405") == "1405-02"
+
     def test_is_canonical(self):
         assert is_canonical_month("1404-10") is True
         assert is_canonical_month("1404-13") is False
