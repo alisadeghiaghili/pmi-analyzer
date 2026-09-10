@@ -4,6 +4,7 @@ import logging
 from pathlib import Path
 from typing import List, Optional, Tuple
 
+from pmi_analyzer.calendar import normalize_month_id
 from pmi_analyzer.parser.pdf_parser import PDFParser
 from pmi_analyzer.scraper.archive_scraper import ReportLink
 from pmi_analyzer.types import ShamkhMetrics
@@ -45,11 +46,11 @@ class BatchParser:
         for i, (lnk, pdf_path) in enumerate(valid, 1):
             logger.debug(f"  [{i}/{len(valid)}] Parsing: {pdf_path.name}")
             try:
-                # Use period_label as month hint if available
-                metrics_list = self.pdf_parser.parse(
-                    pdf_path,
-                    month=lnk.period_label or pdf_path.stem,
+                # Canonical YYYY-MM only; Persian labels must never become CSV keys.
+                month_hint = normalize_month_id(lnk.period_label) or normalize_month_id(
+                    pdf_path.stem
                 )
+                metrics_list = self.pdf_parser.parse(pdf_path, month=month_hint)
                 for m in metrics_list:
                     # Attach period_number for sorting
                     if lnk.period_number and not hasattr(m, "_period_number"):

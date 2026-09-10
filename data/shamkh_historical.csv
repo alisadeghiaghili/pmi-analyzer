@@ -1,4 +1,4 @@
-month,production,new_orders,sales,raw_materials_inv,final_goods_inv,input_price,production_expectations,employment,exports,delivery_speed,business_activity,pmi_total
+﻿month,production,new_orders,sales,raw_materials_inv,final_goods_inv,input_price,production_expectations,employment,exports,delivery_speed,business_activity,pmi_total
 1404-01,,,,,,,49.6,46.6,45.6,,,48.4
 1404-02,,,,,,,,,,,, 49.3
 1404-03,,,,,,,,,,,, 48.7
@@ -8,4 +8,3 @@ month,production,new_orders,sales,raw_materials_inv,final_goods_inv,input_price,
 1404-07,,,,,,,,,,,47.4,47.4
 1404-08,,,,,,,,,,,, 46.6
 1404-09,,,,,,,,,,,,
-دی,47.63,47.63,47.63,47.63,47.63,47.63,47.63,47.63,47.63,47.63,47.63,8.28

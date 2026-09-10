@@ -53,8 +53,11 @@ class ArchiveScraper:
     ICCIMA_SEARCH_URL = "https://iccima.ir/?s=%D8%B4%D8%A7%D9%85%D8%AE"
 
     PERIOD_RE = re.compile(
+        r"(?<![؀-ۿ])"
         r"(فروردین|اردیبهشت|خرداد|تیر|مرداد|شهریور|مهر|آبان|آذر|دی|بهمن|اسفند)"
-        r"(?:\s*ماه)?\s*(\d{4})?"
+        r"(?:\s*ماه)?"
+        r"(?![؀-ۿ])"
+        r"\s*(\d{4})?"
     )
     PERIOD_NUM_RE = re.compile(r"دوره\s*(\d+)")
     PDF_HREF_RE = re.compile(r"\.pdf$", re.IGNORECASE)

@@ -394,5 +394,31 @@ def report(
         click.echo(f"Report generated: {path}")
 
 
+@cli.command("purge-invalid-months")
+@click.option(
+    "--csv",
+    "csv_path",
+    type=click.Path(),
+    default=str(DEFAULT_HISTORICAL_CSV),
+    show_default=True,
+    help="Path to shamkh_historical.csv",
+)
+def purge_invalid_months(csv_path: str):
+    """Drop non-canonical month rows from the historical CSV.
+
+    Rows whose ``month`` is not ``YYYY-MM`` (legacy Persian keys, typos)
+    are removed so trends and alerts are not computed on contaminated data.
+    """
+    from pmi_analyzer.data.loader import rewrite_historical
+
+    path = Path(csv_path)
+    if not path.exists():
+        click.echo(f"CSV not found: {path}")
+        raise SystemExit(1)
+
+    kept, dropped = rewrite_historical(path)
+    click.echo(f"Purged {dropped} invalid month row(s); kept {kept} → {path}")
+
+
 if __name__ == "__main__":
     cli()
