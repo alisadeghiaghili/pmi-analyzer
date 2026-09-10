@@ -10,6 +10,37 @@ from pmi_analyzer.i18n import _, set_locale
 DEFAULT_HISTORICAL_CSV = Path("data") / "shamkh_historical.csv"
 
 
+def _sanitize_metrics(metrics_list: list) -> list:
+    """Deduplicate and validate parsed metrics before persisting.
+
+    Args:
+        metrics_list: Raw ShamkhMetrics from the PDF parser.
+
+    Returns:
+        Clean list sorted by month; invalid records are dropped with a warning.
+    """
+    from pmi_analyzer.calendar import is_canonical_month
+    from pmi_analyzer.exceptions import ValidationError
+    from pmi_analyzer.metrics.validators import MetricsValidator
+    from pmi_analyzer.scraper.deduplicator import Deduplicator
+
+    canonical = [m for m in metrics_list if is_canonical_month(m.month)]
+    dropped_keys = len(metrics_list) - len(canonical)
+    if dropped_keys:
+        logging.warning("Dropped %d record(s) with non-canonical month ids", dropped_keys)
+
+    clean = Deduplicator().run(canonical)
+    validator = MetricsValidator()
+    valid: list = []
+    for m in clean:
+        try:
+            validator.validate(m)
+            valid.append(m)
+        except ValidationError as exc:
+            logging.warning("Skipping invalid metrics for %s: %s", m.month, exc)
+    return valid
+
+
 @click.group()
 @click.option("--locale", default="fa", type=click.Choice(["fa", "en"]), help="Language (fa/en)")
 def cli(locale: str):
@@ -92,7 +123,7 @@ def build_historical(csv_path: str, pdf_dir: str, delay: float, verbose: bool):
     # ---- Phase 3: parse + append ------------------------------------------
     click.echo("📄  Phase 3: Parsing PDFs and writing to CSV...")
     parser = BatchParser()
-    all_metrics = parser.parse_all(results)
+    all_metrics = _sanitize_metrics(parser.parse_all(results))
 
     new_records = 0
     existing_months: set = set()
@@ -206,7 +237,7 @@ def analyse(
     # ---- Parse this month -------------------------------------------------
     click.echo(f"Parsing: {pdf_path}")
     parser = PDFParser()
-    metrics_list = parser.parse(pdf_path)
+    metrics_list = _sanitize_metrics(parser.parse(pdf_path))
 
     # ---- Append new month to historical CSV -------------------------------
     if hist_csv.exists():

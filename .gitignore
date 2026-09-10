@@ -29,6 +29,7 @@ htmlcov/
 data/pdfs/
 data/shamkh_raw.csv
 data/shamkh_data.csv
+_pdf_probe/
 
 # Data (committed intentionally - seed & cache)
 # data/shamkh_historical.csv  <- OK to commit
