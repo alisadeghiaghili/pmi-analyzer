@@ -66,7 +66,6 @@ _ROW_LABEL_MAP: Dict[str, str] = {
     "میزان صادرات": "exports",
     "میزان صادرات کالا یا خدمت": "exports",
     "صادرات کالا یا خدمت": "exports",
-    "قیمت محصول": "sales",
     "میزان فروش": "sales",
     "فروش کالا": "sales",
     "میزان فروش کالاها یا خدمات": "sales",
@@ -107,23 +106,37 @@ _ROW_LABEL_MAP: Dict[str, str] = {
 
 # Industry-specific keywords that disqualify a row from being the aggregate/total
 _INDUSTRY_KEYWORDS = {
-    "سایر صنایع",  # other industries
-    "صنعت خودرو",  # automotive industry
-    "صنعت غذا",  # food industry
-    "صنعت دارو",  # pharmaceutical industry
-    "صنعت نفت",  # oil industry
-    "صنعت فلزات",  # metals industry
-    "صنعت سیمان",  # cement industry
-    "صنعت شیمیایی",  # chemical industry
-    "صنعت منسوجات",  # textile industry
-    "صنعت کاغذ",  # paper industry
-    "صنعت لاستیک",  # rubber industry
-    "صنعت الکترونیک",  # electronics industry
-    "خودرو",  # automotive
-    "فلزات",  # metals
-    "سیمان",  # cement
-    "شیمیایی",  # chemical
-    "منسوجات",  # textile
+    "سایر صنایع",
+    "صنعت خودرو",
+    "صنعت غذا",
+    "صنعت دارو",
+    "صنعت نفت",
+    "صنعت فلزات",
+    "صنعت سیمان",
+    "صنعت شیمیایی",
+    "صنعت منسوجات",
+    "صنعت کاغذ",
+    "صنعت لاستیک",
+    "صنعت الکترونیک",
+    "صنعت پتروشیمی",
+    "صنعت هوافضا",
+    "صنعت فناوری",
+    "صنعت نساجی",
+    "صنعت غذایی",
+    "خودرو",
+    "فلزات",
+    "سیمان",
+    "شیمیایی",
+    "منسوجات",
+    "پتروشیمی",
+    "هوافضا",
+    "نساجی",
+    "غذایی",
+    "لاستیک",
+    "پلاستیک",
+    "خانگی",
+    "فلزی",
+    "غیر فلزی",
 }
 
 # Aggregate/total qualifiers that indicate the main PMI row
@@ -152,45 +165,130 @@ _MONTH_NAMES: Dict[str, str] = {
 }
 
 
-def _to_float(cell: Optional[str]) -> Optional[float]:
-    """Convert a table cell string to float; return None on failure.
+_DIGIT_MAP = str.maketrans("۰۱۲۳۴۵۶۷۸۹", "0123456789")
+_CORRUPT_TOKEN_RE = re.compile(r"\d+\.\d+\.\d+")
+_YEAR_RE = re.compile(r"(?<!\d)(1[34]\d{2})(?!\d)")
 
-    Handles multi-line cells (e.g. '١٤\n54.8') by extracting the best valid number.
-    Prefers decimal numbers over integers, as decimals are more likely to be
-    the actual PMI values (e.g. 45.9) rather than year labels (e.g. 1405).
+
+def _normalize_numeric_text(text: str) -> str:
+    """Normalise Persian/Arabic digits and decimal separators to ASCII.
+
+    Args:
+        text: Raw cell or token text.
+
+    Returns:
+        Text with ASCII digits, '.' as decimal point, and ',' stripped
+        unless it is a single decimal comma (``45,9``).
     """
-    if not cell:
-        return None
-    cleaned = cell.strip()
-    # normalise Arabic/Persian digits and separators
-    cleaned = cleaned.translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹", "0123456789"))
-    # Replace Persian comma with ASCII comma for uniform handling
+    cleaned = text.translate(_DIGIT_MAP)
+    cleaned = cleaned.replace("٫", ".")  # Arabic decimal separator U+066B
     cleaned = cleaned.replace("،", ",")
-    # Handle comma as decimal separator (common in Persian locale)
-    # If pattern is digit,digit (no dot), treat comma as decimal
+    cleaned = cleaned.replace("/", ".")
     if re.match(r"^\d{1,3},\d{1,2}$", cleaned):
         cleaned = cleaned.replace(",", ".")
     else:
         cleaned = cleaned.replace(",", "")
-    cleaned = cleaned.replace("/", ".")
-    # Find all valid numbers
-    # Decimal numbers first (e.g. 45.9), then integers (e.g. 48)
-    decimal_matches = re.findall(r"(\d{1,3}\.\d{1,2})", cleaned)
-    # Integer matches: 1-3 digits not followed by more digits
-    int_matches = re.findall(r"(?<!\d)(\d{1,3})(?!\d)", cleaned)
+    return cleaned
 
-    # Try decimals first (more likely to be actual PMI values)
-    for match in reversed(decimal_matches):
+
+def _is_corrupted_numeric_token(token: str) -> bool:
+    """Return True when a token looks like a double-drawn PDF cell.
+
+    Live ICCIMA PDFs often emit stacked glyphs such as ``4511..42`` or
+    ``951.49.2``. Those must not be parsed as PMI values.
+
+    Args:
+        token: A single line or whitespace-separated token.
+
+    Returns:
+        True if the token is treated as corrupt and must be skipped.
+    """
+    if ".." in token:
+        return True
+    if _CORRUPT_TOKEN_RE.search(token):
+        return True
+    return False
+
+
+def _first_pmi_in_token(token: str) -> Optional[float]:
+    """Extract the first plausible PMI value from a normalised token.
+
+    Args:
+        token: Token already passed through :func:`_normalize_numeric_text`.
+
+    Returns:
+        First decimal in ``[0, 100]``, else first non-year integer in range.
+    """
+    for match in re.findall(r"(\d{1,3}\.\d{1,2})", token):
         val = float(match)
         if 0.0 <= val <= 100.0:
             return val
-
-    # Fall back to integers
-    for match in reversed(int_matches):
+    for match in re.findall(r"(?<!\d)(\d{1,3})(?!\d)", token):
+        if _YEAR_RE.fullmatch(match):
+            continue
         val = float(match)
         if 0.0 <= val <= 100.0:
             return val
+    return None
 
+
+def _to_float(cell: Optional[str]) -> Optional[float]:
+    """Convert a table cell string to float; return None on failure.
+
+    Handles multi-line cells and common ICCIMA PDF artefacts:
+    Persian/Arabic digits, Arabic decimal separator (``٫``), stacked
+    double-drawn tokens, and year labels mixed with values.
+
+    The first clean PMI-range number in the cell wins (current month is
+    typically listed first in summary rows).
+
+    Args:
+        cell: Raw cell text from pdfplumber, or None.
+
+    Returns:
+        PMI value in ``[0, 100]``, or None if no clean number is found.
+
+    Example:
+        >>> _to_float("45.9\\n١٤٠٥ دادرخ")
+        45.9
+        >>> _to_float("۴۷٫۶۳")
+        47.63
+        >>> _to_float("4511..42") is None
+        True
+    """
+    if not cell:
+        return None
+    cleaned = cell.strip().translate(_DIGIT_MAP)
+    cleaned = cleaned.replace("٫", ".").replace("،", ",").replace("/", ".")
+
+    decimals: List[float] = []
+    integers: List[float] = []
+    for raw_line in cleaned.splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        for token in line.split():
+            if _is_corrupted_numeric_token(token):
+                continue
+            if re.match(r"^\d{1,3},\d{1,2}$", token):
+                token = token.replace(",", ".")
+            else:
+                token = token.replace(",", "")
+            for match in re.findall(r"(\d{1,3}\.\d{1,2})", token):
+                val = float(match)
+                if 0.0 <= val <= 100.0:
+                    decimals.append(val)
+            for match in re.findall(r"(?<!\d)(\d{1,3})(?!\d)", token):
+                if _YEAR_RE.fullmatch(match):
+                    continue
+                val = float(match)
+                if 0.0 <= val <= 100.0:
+                    integers.append(val)
+
+    if decimals:
+        return decimals[0]
+    if integers:
+        return integers[0]
     return None
 
 
@@ -206,47 +304,95 @@ def _normalize_label(text: str) -> str:
 
 
 def _best_match(label: str) -> Optional[str]:
-    """Return the ShamkhMetrics field name for a row label (exact -> partial match)."""
+    """Return the ShamkhMetrics field name for a row label.
+
+    Matching order:
+      1. Exact key in the label map.
+      2. Longest map key contained in the label (avoids short-key false hits).
+      3. Collapsed-whitespace containment for reversed/malformed PDF labels.
+
+    Args:
+        label: Raw or normalised row label from a PDF table.
+
+    Returns:
+        Field name on :class:`~pmi_analyzer.types.ShamkhMetrics`, or None.
+
+    Example:
+        >>> _best_match("شامخ کل")
+        'pmi_total'
+        >>> _best_match("خبر جدید") is None
+        True
+    """
     if not label:
         return None
     normalized = _normalize_label(label)
-    # exact lookup
     if normalized in _ROW_LABEL_MAP:
         return _ROW_LABEL_MAP[normalized]
-    # partial match (key in label or label in key)
+
+    best_key = ""
+    best_field = None
     for key, field in _ROW_LABEL_MAP.items():
-        if key in normalized or normalized in key:
-            return field
-    # last resort: strip all whitespace and try again
+        if key in normalized and len(key) > len(best_key):
+            best_key = key
+            best_field = field
+    if best_field is not None:
+        return best_field
+
+    # Short label contained in a longer map key ("تولید" ⊂ "میزان تولید").
+    if len(normalized) >= 3:
+        best_key = ""
+        for key, field in _ROW_LABEL_MAP.items():
+            if normalized in key and len(key) > len(best_key):
+                best_key = key
+                best_field = field
+        if best_field is not None:
+            return best_field
+
     collapsed = normalized.replace(" ", "")
+    best_key = ""
     for key, field in _ROW_LABEL_MAP.items():
-        if key.replace(" ", "") in collapsed or collapsed in key.replace(" ", ""):
-            return field
-    return None
+        key_c = key.replace(" ", "")
+        if len(key_c) < 4:
+            continue
+        if key_c in collapsed and len(key_c) > len(best_key):
+            best_key = key_c
+            best_field = field
+    return best_field
 
 
 def _is_aggregate_row(label: str) -> bool:
-    """Check if a row label indicates an aggregate/total row (vs industry-specific).
+    """Check if a row label indicates an aggregate/total row.
 
-    Returns True if the label has aggregate qualifiers or no industry qualifier.
-    Returns False if the label contains an industry-specific keyword.
+    Args:
+        label: Row label text.
+
+    Returns:
+        False when an industry keyword or an ``X - <industry>`` suffix is
+        present; True for national/economy rows and empty fallbacks.
+
+    Example:
+        >>> _is_aggregate_row("شاخص کل اقتصاد")
+        True
+        >>> _is_aggregate_row("میزان تولید - پتروشیمی")
+        False
     """
     if not label:
-        return True  # empty label treated as aggregate (fallback)
+        return True
 
     normalized = _normalize_label(label)
 
-    # Check for industry-specific qualifiers (disqualify)
     for industry in _INDUSTRY_KEYWORDS:
         if industry in normalized:
             return False
 
-    # Check for aggregate qualifiers (prefer)
+    # "indicator - something" is almost always an industry breakdown row.
+    if " - " in normalized or "–" in normalized or "—" in normalized:
+        return False
+
     for qualifier in _AGGREGATE_QUALIFIERS:
         if qualifier in normalized:
             return True
 
-    # Default: treat as aggregate if no industry qualifier found
     return True
 
 
@@ -338,12 +484,15 @@ class PDFParser:
                 if field not in fields:
                     fields[field] = value
 
-        # Second pass: fill missing fields from cross-tab tables
+        # Second pass: classic cross-tabs that repeat indicators and include
+        # an aggregate row. Wide sector matrices are national-irrelevant.
         for table in tables:
             if not table or len(table) < 2:
                 continue
             if not self._is_cross_tab_table(table):
-                continue  # skip summary tables in second pass
+                continue
+            if self._is_wide_industry_matrix(table):
+                continue
 
             table_fields = self._extract_from_table(table)
             for field, value in table_fields.items():
@@ -352,35 +501,138 @@ class PDFParser:
 
         return fields
 
+    def _is_wide_industry_matrix(self, table: list) -> bool:
+        """Detect a sector matrix (one row per indicator, many industries).
+
+        Args:
+            table: pdfplumber table.
+
+        Returns:
+            True for wide industry matrices that must not feed national metrics.
+        """
+        if not table:
+            return False
+        widest = max(len(r) for r in table if r)
+        if widest < 8:
+            return False
+        label_hits = sum(1 for r in table if r and len(r) > 1 and _best_match(str(r[-1] or "")))
+        return label_hits >= 2
+
     def _is_cross_tab_table(self, table: list) -> bool:
         """Detect if a table is a cross-tab (industry breakdown) table.
 
-        Cross-tab tables have:
-        - Multiple rows with the same indicator label (one per industry)
-        - Industry names in the header row (e.g., "سایر صنایع", "صنعت خودرو")
+        Cross-tab tables either repeat the same indicator label on multiple
+        rows, or expose many industry columns with the label in the last
+        column (RTL ICCIMA layout).
+
+        Args:
+            table: pdfplumber table (list of rows).
+
+        Returns:
+            True when the table should be treated as industry breakdown.
         """
         if len(table) < 3:
             return False
 
-        # Count how many times each field appears in the table
         field_counts: Dict[str, int] = {}
         for row in table:
             if not row:
                 continue
-            # Check last column (RTL layout for cross-tab)
             if len(row) > 1 and row[-1]:
                 field = _best_match(str(row[-1]))
                 if field:
                     field_counts[field] = field_counts.get(field, 0) + 1
 
-        # If any field appears more than once, it's a cross-tab table
-        return any(count > 1 for count in field_counts.values())
+        if any(count > 1 for count in field_counts.values()):
+            return True
+
+        # Wide RTL table with label in the last column and industry headers.
+        widest = max((len(r) for r in table if r), default=0)
+        if widest >= 8:
+            for row in table:
+                if row and row[-1] and _best_match(str(row[-1])):
+                    return True
+        return False
+
+    def _current_value_index(self, value_cells: list, table: list, label_col: int) -> int:
+        """Pick the index of the current-period numeric cell.
+
+        Uses an explicit header token (``جاری`` / ``ماه جاری``) when present.
+        Otherwise falls back to layout heuristics: first clean value for
+        multi-period summary rows (ICCIMA lists current first), last value
+        when only one comparable remains.
+
+        Args:
+            value_cells: Non-label cells for the current row.
+            table: Full table (for header inspection).
+            label_col: Index of the label column in the original row.
+
+        Returns:
+            Index into the parsed numeric list, or ``-1`` for the last item.
+        """
+        header_idx = self._header_current_index(table, label_col, len(value_cells))
+        if header_idx is not None:
+            return header_idx
+        if value_cells and self._cell_marks_current_period(str(value_cells[0] or "")):
+            return 0
+        # Default layout: oldest → newest, current is the last numeric cell.
+        return -1
+
+    def _cell_marks_current_period(self, cell: str) -> bool:
+        """Return True when a value cell embeds the report month name.
+
+        ICCIMA summary rows often pack ``45.9\\n١٤٠٥ دادرخ`` (value + month)
+        into the current-period column.
+
+        Args:
+            cell: Raw cell text.
+
+        Returns:
+            True if a known Jalali month name (or its RTL reversal) appears.
+        """
+        if not cell:
+            return False
+        for name in _MONTH_NAMES:
+            if name in cell or name[::-1] in cell:
+                return True
+        return False
+
+    def _header_current_index(self, table: list, label_col: int, n_values: int) -> Optional[int]:
+        """Locate the current-month column from a header row.
+
+        Args:
+            table: Full pdfplumber table.
+            label_col: Label column index.
+            n_values: Number of value columns on data rows.
+
+        Returns:
+            Index within value columns, or None if no header token found.
+        """
+        current_tokens = ("جاری", "ماه جاری", "دوره جاری", "این ماه")
+        for row in table[:3]:
+            if not row:
+                continue
+            value_positions = [i for i in range(len(row)) if i != label_col]
+            for pos_i, col_i in enumerate(value_positions[:n_values]):
+                cell = str(row[col_i] or "")
+                norm = _normalize_label(cell)
+                if any(tok in norm for tok in current_tokens):
+                    return pos_i
+        return None
 
     def _extract_from_table(self, table: list) -> Dict[str, Optional[float]]:
-        """Extract field values from a single table."""
-        fields: Dict[str, Optional[float]] = {}
+        """Extract field values from a single table.
 
-        # Phase 1: Collect all matches per field
+        Skips percent-only columns, prefers aggregate rows, and selects the
+        current-period column from headers when available.
+
+        Args:
+            table: pdfplumber table.
+
+        Returns:
+            Mapping of ShamkhMetrics field names to numeric values.
+        """
+        fields: Dict[str, Optional[float]] = {}
         field_matches: Dict[str, List[Tuple[int, Optional[float], str]]] = {}
 
         for row_idx, row in enumerate(table):
@@ -392,7 +644,6 @@ class PDFParser:
             label_text = ""
             label_col = -1
 
-            # Try label in first column (standard LTR layout)
             label_cell = row[0]
             if label_cell:
                 field = _best_match(str(label_cell))
@@ -400,17 +651,15 @@ class PDFParser:
                     label_text = str(label_cell)
                     label_col = 0
 
-            # Try label in last column (RTL layout, e.g. industry breakdown)
             if field is None and len(row) > 1:
                 last_cell = row[-1]
                 if last_cell:
                     field = _best_match(str(last_cell))
                     if field is not None:
-                        value_cells = row[:-1]
+                        value_cells = list(row[:-1])
                         label_text = str(last_cell)
                         label_col = len(row) - 1
 
-            # Try all other columns (summary tables may have label in middle columns)
             if field is None:
                 for col_idx, cell in enumerate(row):
                     if cell and col_idx != 0 and col_idx != len(row) - 1:
@@ -424,21 +673,43 @@ class PDFParser:
             if field is None:
                 continue
 
-            # Build value cells: all columns except the label column
             if value_cells is None:
                 value_cells = [c for c_idx, c in enumerate(row) if c_idx != label_col]
 
-            numeric_cells = [_to_float(str(c)) for c in value_cells if c]
-            numeric_cells = [v for v in numeric_cells if v is not None]
+            # Drop percent/delta cells so they cannot override the level value.
+            cleaned_cells = []
+            for c in value_cells:
+                if c is None:
+                    continue
+                text = str(c)
+                if "%" in text or "٪" in text:
+                    continue
+                cleaned_cells.append(text)
 
-            if numeric_cells:
-                # Summary tables with 4 period values: first value is current month
-                # Cross-tab tables: last value is aggregate
-                if len(numeric_cells) == 4:
-                    value = numeric_cells[0]
-                else:
-                    value = numeric_cells[-1]
-                field_matches.setdefault(field, []).append((row_idx, value, label_text))
+            numeric_cells = [_to_float(c) for c in cleaned_cells]
+            numeric_cells = [v for v in numeric_cells if v is not None]
+            if not numeric_cells:
+                continue
+
+            idx = self._current_value_index(value_cells, table, label_col)
+            if idx < 0 or idx >= len(numeric_cells):
+                value = numeric_cells[-1]
+            else:
+                value = numeric_cells[idx]
+            field_matches.setdefault(field, []).append((row_idx, value, label_text))
+
+        for field, matches in field_matches.items():
+            if field in fields:
+                continue
+
+            if len(matches) == 1:
+                fields[field] = matches[0][1]
+            else:
+                best_value = self._select_aggregate_match(matches, table)
+                if best_value is not None:
+                    fields[field] = best_value
+
+        return fields
 
         # Phase 2: Select best match for each field
         for field, matches in field_matches.items():
@@ -612,31 +883,48 @@ class PDFParser:
     # ------------------------------------------------------------------
 
     def _detect_month(self, text: str) -> Optional[str]:
-        """Detect Jalali month from Persian month names and 4-digit year.
+        """Detect the report's Jalali month from Persian text.
 
-        Finds all month+year pairs and returns the one with the latest year
-        (since reports often reference older base years like 1400).
+        Month names must appear as standalone tokens (not as substrings of
+        RTL gibberish such as ``دهدی`` for «می‌دهد``). Among valid pairs,
+        the highest report year wins, then the earliest match in the text
+        (page titles come first).
+
+        Args:
+            text: Full or partial extracted PDF text.
+
+        Returns:
+            ``YYYY-MM`` string, ``YYYY-??`` when only a year is found, or None.
+
+        Example:
+            >>> PDFParser()._detect_month("گزارش خرداد ۱۴۰۵ دوره ۹۳")
+            '1405-03'
+            >>> PDFParser()._detect_month("ندیدج 1405") is None
+            True
         """
-        best: Optional[str] = None
-        best_year = 0
+        if not text:
+            return None
+
+        letter = r"[\u0600-\u06FF]"
+        year_pat = r"[۰-۹\d]{4}"
+        candidates: List[Tuple[int, int, str]] = []  # (year, start, month_id)
+
         for name, num in _MONTH_NAMES.items():
-            pattern = re.compile(
-                rf"{re.escape(name)}[^\d]{{0,10}}[\u06f0-\u06f9\d]{{4}}"
-                rf"|[\u06f0-\u06f9\d]{{4}}[^\d]{{0,10}}{re.escape(name)}"
-            )
+            token = rf"(?<!{letter}){re.escape(name)}(?!{letter})"
+            pattern = re.compile(rf"{token}[^\d]{{0,12}}{year_pat}|{year_pat}[^\d]{{0,12}}{token}")
             for m in pattern.finditer(text):
-                snippet = m.group(0)
-                snippet_norm = snippet.translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹", "0123456789"))
-                year_m = re.search(r"(1[34]\d{2})", snippet_norm)
-                if year_m:
-                    year = int(year_m.group(1))
-                    if year > best_year:
-                        best_year = year
-                        best = f"{year_m.group(1)}-{num}"
-        if best:
-            return best
-        # last resort: bare 4-digit year (take the latest)
-        year_m = re.search(r"(1[34]\d{2})", text)
+                snippet = m.group(0).translate(_DIGIT_MAP)
+                year_m = re.search(r"(1[34]\d{2})", snippet)
+                if not year_m:
+                    continue
+                year = int(year_m.group(1))
+                candidates.append((year, m.start(), f"{year_m.group(1)}-{num}"))
+
+        if candidates:
+            candidates.sort(key=lambda c: (-c[0], c[1]))
+            return candidates[0][2]
+
+        year_m = re.search(r"(1[34]\d{2})", text.translate(_DIGIT_MAP))
         if year_m:
             return f"{year_m.group(1)}-??"
         return None

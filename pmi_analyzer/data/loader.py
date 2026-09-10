@@ -126,13 +126,22 @@ def _row_to_metrics(row: dict) -> ShamkhMetrics:
         ShamkhMetrics object with values from the CSV row.
     """
 
-    def _float(val: str) -> Optional[float]:
-        """Convert string to float, returning None for empty/invalid values."""
-        val = val.strip()
-        if not val:
+    def _float(val: object) -> Optional[float]:
+        """Convert a CSV cell to float, returning None for empty/invalid values.
+
+        Args:
+            val: Raw cell value (str, None, or other).
+
+        Returns:
+            Parsed float, or None when the cell is missing or non-numeric.
+        """
+        if val is None:
+            return None
+        text = str(val).strip()
+        if not text:
             return None
         try:
-            return float(val)
+            return float(text)
         except ValueError:
             return None
 

@@ -130,6 +130,7 @@ class ShamkhMetrics:
                 self.sales is not None,
                 self.raw_materials_inv is not None,
                 self.final_goods_inv is not None,
+                self.input_price is not None,
                 self.production_expectations is not None,
                 self.employment is not None,
                 self.exports is not None,
