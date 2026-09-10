@@ -7,8 +7,6 @@ industry-vs-national aggregate confusion, and dataclass validation gaps.
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import pytest
 
 from pmi_analyzer.data.loader import _row_to_metrics
@@ -20,13 +18,11 @@ from pmi_analyzer.parser.pdf_parser import (
     _to_float,
 )
 from pmi_analyzer.types import ShamkhMetrics
-
 from tests.fixtures.golden_tables import (
     CLEAN_SUMMARY_TABLE,
     FARVARDIN_INDUSTRY_TABLE,
     KHORDAD_SUMMARY_TABLE,
 )
-
 
 # --------------------------------------------------------------------------- #
 #  _to_float

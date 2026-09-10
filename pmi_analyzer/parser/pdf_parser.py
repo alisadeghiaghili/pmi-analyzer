@@ -597,9 +597,7 @@ class PDFParser:
                 return True
         return False
 
-    def _header_current_index(
-        self, table: list, label_col: int, n_values: int
-    ) -> Optional[int]:
+    def _header_current_index(self, table: list, label_col: int, n_values: int) -> Optional[int]:
         """Locate the current-month column from a header row.
 
         Args:
@@ -913,9 +911,7 @@ class PDFParser:
 
         for name, num in _MONTH_NAMES.items():
             token = rf"(?<!{letter}){re.escape(name)}(?!{letter})"
-            pattern = re.compile(
-                rf"{token}[^\d]{{0,12}}{year_pat}|{year_pat}[^\d]{{0,12}}{token}"
-            )
+            pattern = re.compile(rf"{token}[^\d]{{0,12}}{year_pat}|{year_pat}[^\d]{{0,12}}{token}")
             for m in pattern.finditer(text):
                 snippet = m.group(0).translate(_DIGIT_MAP)
                 year_m = re.search(r"(1[34]\d{2})", snippet)
