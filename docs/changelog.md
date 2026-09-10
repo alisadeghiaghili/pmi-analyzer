@@ -2,6 +2,25 @@
 
 All notable changes to PMI Analyzer will be documented in this file.
 
+## [1.2.0] - 2026-09-10
+
+### Added
+- `pmi_analyzer.calendar` module: canonical `YYYY-MM` month identity (`normalize_month_id`, `month_sort_key`)
+- CLI `purge-invalid-months` to strip contaminated historical CSV rows
+- `rewrite_historical()` loader helper returning `(kept, dropped)`
+- Optional extra `pip install pmi-analyzer[report]` (`python-docx`, `kaleido`)
+
+### Fixed
+- Batch parser no longer writes raw Persian `period_label` into `month`
+- Monthly updater compares months by canonical id (no fuzzy substring false positives)
+- Archive period regex uses word boundaries for short names (`دی`, `تیر`, `آذر`)
+- Historical CSV sort is chronological via `month_sort_key`, not string sort
+- `append_record` rejects non-canonical month keys
+
+### Changed
+- Removed unused runtime dependencies: `pydantic`, `python-dotenv`; `babel` moved to docs extra
+- CI: format auto-commit only on `main`; mypy enforced on core modules; coverage gate 70%; dropped Python 3.14 prerelease from matrix
+
 ## [1.1.0] - 2026-08-10
 
 ### Added
