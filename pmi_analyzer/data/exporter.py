@@ -226,7 +226,15 @@ def export_to_sql(
 
         cols = ", ".join(df.columns)
         vals = ", ".join(values)
-        lines.append(f"INSERT INTO {table_name} ({cols}) VALUES ({vals});")
+        update_cols = [c for c in df.columns if c != "month"]
+        if update_cols:
+            set_clause = ", ".join(f"{c} = EXCLUDED.{c}" for c in update_cols)
+            lines.append(
+                f"INSERT INTO {table_name} ({cols}) VALUES ({vals}) "
+                f"ON CONFLICT (month) DO UPDATE SET {set_clause};"
+            )
+        else:
+            lines.append(f"INSERT INTO {table_name} ({cols}) VALUES ({vals});")
 
     output_path.write_text("\n".join(lines), encoding="utf-8")
 

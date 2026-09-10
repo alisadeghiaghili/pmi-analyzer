@@ -22,9 +22,11 @@ def _sanitize_metrics(metrics_list: list) -> list:
     from pmi_analyzer.calendar import is_canonical_month
     from pmi_analyzer.exceptions import ValidationError
     from pmi_analyzer.metrics.validators import MetricsValidator
+    from pmi_analyzer.quality import scrub_implausible
     from pmi_analyzer.scraper.deduplicator import Deduplicator
 
-    canonical = [m for m in metrics_list if is_canonical_month(m.month)]
+    scrubbed = [scrub_implausible(m) for m in metrics_list]
+    canonical = [m for m in scrubbed if is_canonical_month(m.month)]
     dropped_keys = len(metrics_list) - len(canonical)
     if dropped_keys:
         logging.warning("Dropped %d record(s) with non-canonical month ids", dropped_keys)
