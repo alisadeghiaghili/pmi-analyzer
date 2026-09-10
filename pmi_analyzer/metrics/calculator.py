@@ -95,6 +95,7 @@ class MetricsCalculator:
             rows.append(
                 {
                     "month": m.month,
+                    "pmi_total": m.pmi_total,
                     "production": m.production,
                     "new_orders": m.new_orders,
                     "sales": m.sales,
