@@ -11,11 +11,11 @@ import re
 from typing import Optional
 
 __all__ = [
-    "MONTH_NAME_TO_NUM",
     "CANONICAL_MONTH_RE",
+    "MONTH_NAME_TO_NUM",
     "is_canonical_month",
-    "normalize_month_id",
     "month_sort_key",
+    "normalize_month_id",
 ]
 
 MONTH_NAME_TO_NUM: dict[str, str] = {

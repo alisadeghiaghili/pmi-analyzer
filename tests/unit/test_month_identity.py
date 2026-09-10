@@ -13,8 +13,8 @@ from pmi_analyzer.calendar import (
     normalize_month_id,
 )
 from pmi_analyzer.data.loader import append_record, load_historical, rewrite_historical
-from pmi_analyzer.scraper.batch_parser import BatchParser
 from pmi_analyzer.scraper.archive_scraper import ReportLink
+from pmi_analyzer.scraper.batch_parser import BatchParser
 from pmi_analyzer.types import ShamkhMetrics
 from pmi_analyzer.updater.monthly_updater import MonthlyUpdater
 
