@@ -2,6 +2,23 @@
 
 All notable changes to PMI Analyzer will be documented in this file.
 
+## [1.4.0] - 2026-09-10
+
+### Added
+- `pmi_analyzer.quality` plausibility gates (`HEADLINE_RANGE`, `scrub_implausible`)
+- SQL export uses `ON CONFLICT (month) DO UPDATE` upserts
+- `scripts/rebuild_from_local_pdfs.py` for local PDF → historical CSV merge
+- setuptools package-data for `py.typed` and `.po` locales
+
+### Fixed
+- Historical CSV sorted chronologically after rebuild
+- Implausible artefacts (headline < 20, indicators < 15) nulled before persist
+- Low-quality PDFs without production and with weak headline are not written
+
+### Data
+- Added verified months `1405-03` (pmi 45.9) and `1405-04` (pmi 45.0) from live ICCIMA PDFs
+- Removed contaminated/suspect rows; seed `1404-01`…`1404-09` retained
+
 ## [1.3.0] - 2026-09-10
 
 ### Added

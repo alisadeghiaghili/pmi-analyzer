@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pmi-analyzer"
-version = "1.3.0"
+version = "1.4.0"
 description = "Shamkh (PMI) Analyzer - Automatic analysis of Shamkh and Iranian economic indicators"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -47,6 +47,9 @@ pmi-analyzer = "pmi_analyzer.cli:cli"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["pmi_analyzer*"]
+
+[tool.setuptools.package-data]
+pmi_analyzer = ["py.typed", "i18n/locales/**/*.po"]
 
 [tool.black]
 line-length = 100
