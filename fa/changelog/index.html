@@ -905,15 +905,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#100-2024-01-01" class="md-nav__link">
+  <a href="#110-2026-08-10" class="md-nav__link">
     <span class="md-ellipsis">
       
-        [1.0.0] - 2024-01-01
+        [1.1.0] - 2026-08-10
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="[1.0.0] - 2024-01-01">
+    <nav class="md-nav" aria-label="[1.1.0] - 2026-08-10">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -940,6 +940,56 @@
         
           <li class="md-nav__item">
   <a href="#changed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#100-2024-01-01" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.0.0] - 2024-01-01
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.0.0] - 2024-01-01">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_1" class="md-nav__link">
     <span class="md-ellipsis">
       
         Changed
@@ -989,15 +1039,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#100-2024-01-01" class="md-nav__link">
+  <a href="#110-2026-08-10" class="md-nav__link">
     <span class="md-ellipsis">
       
-        [1.0.0] - 2024-01-01
+        [1.1.0] - 2026-08-10
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="[1.0.0] - 2024-01-01">
+    <nav class="md-nav" aria-label="[1.1.0] - 2026-08-10">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1038,6 +1088,56 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#100-2024-01-01" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.0.0] - 2024-01-01
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.0.0] - 2024-01-01">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1060,8 +1160,33 @@
 
 <h1 id="changelog">Changelog<a class="headerlink" href="#changelog" title="Permanent link">&para;</a></h1>
 <p>All notable changes to PMI Analyzer will be documented in this file.</p>
-<h2 id="100-2024-01-01">[1.0.0] - 2024-01-01<a class="headerlink" href="#100-2024-01-01" title="Permanent link">&para;</a></h2>
+<h2 id="110-2026-08-10">[1.1.0] - 2026-08-10<a class="headerlink" href="#110-2026-08-10" title="Permanent link">&para;</a></h2>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Regression suite <code>tests/unit/test_pdf_extraction_accuracy.py</code> covering live ICCIMA PDF artefacts</li>
+<li>Golden table snapshots under <code>tests/fixtures/golden_tables.py</code> (summary + industry matrices)</li>
+<li>Arabic decimal separator (<code>U+066B</code>) support in numeric cell parsing</li>
+<li>Header-aware current-period column selection (<code>جاری</code> / <code>ماه جاری</code>)</li>
+<li>Detection of wide sector matrices so industry columns never overwrite national metrics</li>
+</ul>
+<h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Month detection no longer treats <code>دی</code>/<code>تیر</code>/<code>آذر</code> inside RTL gibberish (e.g. «می‌دهد») as Jalali months</li>
+<li><code>_to_float</code> rejects double-drawn PDF tokens (<code>4511..42</code>, <code>951.49.2</code>) instead of returning garbage</li>
+<li>Multi-line cells prefer the first clean decimal (current period) over trailing artefacts</li>
+<li>Percent/delta columns (<code>12%</code>) no longer override the level value</li>
+<li><code>ShamkhMetrics.validate()</code> includes <code>input_price</code></li>
+<li>CSV loader tolerates <code>None</code> cells without raising <code>AttributeError</code></li>
+<li><code>MetricsCalculator</code> preserves official <code>pmi_total</code> in the output DataFrame</li>
+<li><code>قیمت محصول</code> is no longer mapped to <code>sales</code></li>
+<li>Expanded industry keyword list (petrochemical, aerospace, textiles, …)</li>
+</ul>
+<h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Cross-tab extraction still prefers aggregate rows, but wide industry matrices are excluded from national <code>ShamkhMetrics</code></li>
+</ul>
+<h2 id="100-2024-01-01">[1.0.0] - 2024-01-01<a class="headerlink" href="#100-2024-01-01" title="Permanent link">&para;</a></h2>
+<h3 id="added_1">Added<a class="headerlink" href="#added_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li>PDF parser with multi-strategy extraction (table, spatial, chart, text fallback)</li>
 <li>RTL Persian text support</li>
@@ -1076,13 +1201,13 @@
 <li>GitHub Pages deployment</li>
 <li>Pre-commit hooks for code quality</li>
 </ul>
-<h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
+<h3 id="fixed_1">Fixed<a class="headerlink" href="#fixed_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Cross-tab row selection (extracts aggregate values instead of industry breakdown)</li>
 <li>Month detection preferring latest year over base year references</li>
 <li>Multi-line cell parsing in summary tables</li>
 </ul>
-<h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
+<h3 id="changed_1">Changed<a class="headerlink" href="#changed_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Updated <code>_to_float()</code> to prefer decimal numbers over year-like integers</li>
 <li>Improved label matching with Arabic/Persian normalization</li>
