@@ -2,6 +2,19 @@
 
 All notable changes to PMI Analyzer will be documented in this file.
 
+## [1.3.0] - 2026-09-10
+
+### Added
+- Integration suite `tests/integration/test_real_pdf_parsing.py` (auto-skips when fixture PDFs are absent)
+- CLI `_sanitize_metrics` path: Deduplicator + MetricsValidator before CSV append
+- Filename and short Jalali-year month hints (`تیر405` → `1405-04`)
+- Reversed RTL month tokens in body-text detection (`دادرخ` ↔ خرداد)
+
+### Fixed
+- Month detection on live ICCIMA PDFs (title RTL + comparison-year traps)
+- `pmi_total` included in numeric range validation
+- `PDFParser.parse` prefers explicit month, then filename stem, then body text
+
 ## [1.2.0] - 2026-09-10
 
 ### Added

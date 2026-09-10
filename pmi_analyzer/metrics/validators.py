@@ -6,6 +6,7 @@ from pmi_analyzer.exceptions import ValidationError
 from pmi_analyzer.types import ShamkhMetrics
 
 _NUMERIC_FIELDS = [
+    "pmi_total",
     "production",
     "new_orders",
     "sales",

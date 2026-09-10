@@ -13,6 +13,7 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import pdfplumber
 
+from pmi_analyzer.calendar import normalize_month_id
 from pmi_analyzer.exceptions import ParseError
 from pmi_analyzer.types import ShamkhMetrics
 
@@ -432,7 +433,13 @@ class PDFParser:
                         all_tables.extend(tbls)
 
             full_text = "\n".join(pages_text)
-            detected_month = month or self._detect_month(full_text) or "unknown"
+            # Priority: explicit override → filename stem → body text detection.
+            detected_month = (
+                (normalize_month_id(month) if month else None)
+                or normalize_month_id(pdf_path.stem)
+                or self._detect_month(full_text)
+                or "unknown"
+            )
 
             fields: Dict[str, Optional[float]] = {}
 
@@ -910,15 +917,18 @@ class PDFParser:
         candidates: List[Tuple[int, int, str]] = []  # (year, start, month_id)
 
         for name, num in _MONTH_NAMES.items():
-            token = rf"(?<!{letter}){re.escape(name)}(?!{letter})"
-            pattern = re.compile(rf"{token}[^\d]{{0,12}}{year_pat}|{year_pat}[^\d]{{0,12}}{token}")
-            for m in pattern.finditer(text):
-                snippet = m.group(0).translate(_DIGIT_MAP)
-                year_m = re.search(r"(1[34]\d{2})", snippet)
-                if not year_m:
-                    continue
-                year = int(year_m.group(1))
-                candidates.append((year, m.start(), f"{year_m.group(1)}-{num}"))
+            for token_name in (name, name[::-1]):
+                token = rf"(?<!{letter}){re.escape(token_name)}(?!{letter})"
+                pattern = re.compile(
+                    rf"{token}[^\d]{{0,12}}{year_pat}|{year_pat}[^\d]{{0,12}}{token}"
+                )
+                for m in pattern.finditer(text):
+                    snippet = m.group(0).translate(_DIGIT_MAP)
+                    year_m = re.search(r"(1[34]\d{2})", snippet)
+                    if not year_m:
+                        continue
+                    year = int(year_m.group(1))
+                    candidates.append((year, m.start(), f"{year_m.group(1)}-{num}"))
 
         if candidates:
             candidates.sort(key=lambda c: (-c[0], c[1]))
